@@ -1,0 +1,71 @@
+{
+  "skills": [
+    {
+      "category": "Languages",
+      "items": ["Java", "TypeScript", "JavaScript", "Python", "SQL"]
+    },
+    {
+      "category": "Backend",
+      "items": ["Spring Boot", "Spring Security", "REST APIs", "WebSockets"]
+    }
+  ],
+  "certifications": [
+    {
+      "title": "AWS Academy: Cloud Foundations",
+      "issuer": "AWS Academy",
+      "url": "https://aws.amazon.com/training/awsacademy/",
+      "date": "2024"
+    }
+  ],
+  "heroData": {
+    "bio": "Hi, I'm Aryan 👋\nBackend engineer focused on building scalable systems.",
+    "tagline": "I design and build secure, scalable backend systems."
+  },
+  "socialLinks": [
+    {
+      "label": "GitHub",
+      "url": "https://github.com/AryanDevCodes",
+      "icon": "Github"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/rajaryanse",
+      "icon": "Linkedin"
+    },
+    {
+      "label": "Email",
+      "url": "mailto:rajaryan.codes@gmail.com",
+      "icon": "Mail"
+    }
+  ],
+  "experience": [
+    {
+      "company": "Coding Raja Technologies",
+      "position": "Java Development Intern",
+      "startDate": "May 2024",
+      "endDate": "June 2024",
+      "current": false,
+      "achievements": [
+        "Developed 3+ Java GUI desktop applications using Swing and JavaFX",
+        "Applied MVC architecture and event-driven programming"
+      ],
+      "description": "Built Java desktop applications with MVC architecture"
+    }
+  ],
+  "education": [
+    {
+      "institution": "Jai Narain College of Technology",
+      "degree": "B.Tech in Artificial Intelligence and Machine Learning",
+      "field": "Artificial Intelligence and Machine Learning",
+      "startDate": "2022",
+      "endDate": "2026",
+      "grade": "7.30 CGPA",
+      "coursework": ["Data Structures", "Algorithms", "Database Systems"]
+    }
+  ],
+  "mediumSettings": {
+    "username": "",
+    "profileUrl": ""
+  },
+  "featuredPosts": []
+}
