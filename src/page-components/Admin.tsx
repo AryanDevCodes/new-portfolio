@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAdmin } from "@/contexts/AdminContext";
 import { Project } from "@/data/projects";
@@ -218,6 +218,8 @@ function FeaturedBlogsManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const featuredPostsSet = useMemo(() => new Set(featuredPosts), [featuredPosts]);
+
   useEffect(() => {
     const fetchPosts = async () => {
       if (!mediumSettings.username) {
@@ -253,7 +255,7 @@ function FeaturedBlogsManager() {
   const handleToggleFeatured = (postLink: string) => {
     toggleFeaturedPost(postLink);
     toast({ 
-      title: featuredPosts.includes(postLink) ? "Removed from Featured" : "Added to Featured",
+      title: featuredPostsSet.has(postLink) ? "Removed from Featured" : "Added to Featured",
       description: "Blog post feature status updated" 
     });
   };
@@ -319,7 +321,7 @@ function FeaturedBlogsManager() {
       ) : (
         <div className="grid gap-4">
           {posts.map((post) => {
-            const isFeatured = featuredPosts.includes(post.link);
+            const isFeatured = featuredPostsSet.has(post.link);
             return (
               <Card key={post.link} className={`hover:border-primary/30 transition-colors ${isFeatured ? 'border-primary/50 bg-primary/5' : ''}`}>
                 <CardContent className="p-6">

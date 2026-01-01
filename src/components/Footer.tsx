@@ -133,14 +133,16 @@ const BrandSection = ({ personalInfo }: { personalInfo: PersonalInfo }) => {
 const QuickLinksSection = ({ navLinks }: { navLinks: NavLink[] }) => {
   if (navLinks.length === 0) return null;
 
-  const commonLinks = [
+  const commonLinks = useMemo(() => ([
     { path: "/", label: "Home" },
     { path: "/projects", label: "Projects" },
     { path: "/blog", label: "Blog" },
     { path: "/contact", label: "Contact" },
-  ];
+  ]), []);
 
-  const displayLinks = navLinks.length > 0 ? navLinks : commonLinks;
+  const displayLinks = useMemo(() => (
+    navLinks.length > 0 ? navLinks : commonLinks
+  ), [navLinks, commonLinks]);
 
   return (
     <div className="space-y-2">
@@ -210,7 +212,7 @@ const ConnectSection = ({ socialLinks }: { socialLinks: SocialLink[] }) => {
 };
 
 const TechStackBadge = () => {
-  const techStack = ["Next.js", "TypeScript", "Tailwind"];
+  const techStack = useMemo(() => ["Next.js", "TypeScript", "Tailwind"], []);
   
   return (
     <div className="flex items-center gap-1 flex-wrap">

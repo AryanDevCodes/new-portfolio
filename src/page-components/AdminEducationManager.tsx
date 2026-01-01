@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useAdmin, Education } from "@/contexts/AdminContext";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Plus, Trash2, Edit, Save, RotateCcw, GraduationCap } from "lucide-react
 
 export function EducationManager() {
   const { education, updateEducation } = useAdmin();
-  const safeEducation = Array.isArray(education) ? education : [];
+  const safeEducation = useMemo(() => (Array.isArray(education) ? education : []), [education]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<Partial<Education>>({});
   const [showForm, setShowForm] = useState(false);

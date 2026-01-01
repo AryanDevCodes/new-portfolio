@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useAdmin, Experience } from "@/contexts/AdminContext";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Plus, Trash2, Edit, Save, RotateCcw, Briefcase } from "lucide-react";
 
 export function ExperienceManager() {
   const { experience, updateExperience } = useAdmin();
-  const safeExperience = Array.isArray(experience) ? experience : [];
+  const safeExperience = useMemo(() => (Array.isArray(experience) ? experience : []), [experience]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<Partial<Experience>>({});
   const [showForm, setShowForm] = useState(false);

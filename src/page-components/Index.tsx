@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroIllustration } from "@/components/HeroIllustration";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "@/contexts/AdminContext";
 
 const container = {
@@ -68,6 +68,61 @@ interface SkillCategory {
   items: string[];
 }
 
+const MemoHeroIllustration = memo(HeroIllustration);
+
+const TypewriterHeadline = memo(function TypewriterHeadline() {
+  const typewriterPrefix = "I design ";
+  const typewriterPhrases = [
+    "secure, scalable backend systems.",
+    "high-performance APIs.",
+    "production-grade platforms.",
+    "solutions for scale.",
+  ];
+
+  const typewriterSpeed = 32; // ms per char
+  const typewriterPause = 1000; // ms pause at end
+
+  const [hydrated, setHydrated] = useState(false);
+  const [displayedTypewriter, setDisplayedTypewriter] = useState("");
+  const [typewriterIndex, setTypewriterIndex] = useState(0);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const currentPhrase = typewriterPhrases[phraseIndex];
+    if (typewriterIndex < currentPhrase.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedTypewriter(currentPhrase.substring(0, typewriterIndex + 1));
+        setTypewriterIndex(typewriterIndex + 1);
+      }, typewriterSpeed);
+      return () => clearTimeout(timeout);
+    }
+
+    const pauseTimeout = setTimeout(() => {
+      setTypewriterIndex(0);
+      setDisplayedTypewriter("");
+      setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
+    }, typewriterPause);
+    return () => clearTimeout(pauseTimeout);
+  }, [typewriterIndex, phraseIndex, hydrated]);
+
+  return (
+    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight font-display leading-tight">
+      <span className="text-foreground">{typewriterPrefix}</span>
+      <span className="relative inline-block">
+        <span className="relative z-10 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl">
+          {displayedTypewriter}
+        </span>
+        <span className="inline-block w-[3px] h-[0.85em] bg-gradient-to-b from-primary to-accent ml-1.5 animate-pulse rounded-full" />
+      </span>
+    </h1>
+  );
+});
+
 export default function Index() {
   const { heroData, skills: adminSkills, socialLinks: adminSocial } = useAdmin();
   
@@ -76,10 +131,6 @@ export default function Index() {
   const [homeSections, setHomeSections] = useState<HomeSections>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeBioIndex, setActiveBioIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [charIndex, setCharIndex] = useState(0);
 
   useEffect(() => {
     setHydrated(true);
@@ -114,53 +165,13 @@ export default function Index() {
         }
       } catch (error) {
         console.error("Error fetching portfolio data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
-
-  // Typewriter effect for multiple texts
-  const typewriterPrefix = "I design "; // or "I engineered "
-  const typewriterPhrases = [
-    "secure, scalable backend systems.",
-    "robust cloud architectures.",
-    "high-performance APIs.",
-    "production-grade platforms.",
-    "solutions for scale."
-  ];
-  /**
-   * The speed of the typewriter effect, measured in milliseconds per character.
-   * This constant controls how quickly each character appears in the animation.
-   */
-  const typewriterSpeed = 1; // ms per char
-  const typewriterPause = 200; // ms pause at end
-  const [displayedTypewriter, setDisplayedTypewriter] = useState("");
-  const [typewriterIndex, setTypewriterIndex] = useState(0);
-  const [phraseIndex, setPhraseIndex] = useState(0);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    const currentPhrase = typewriterPhrases[phraseIndex];
-    if (typewriterIndex < currentPhrase.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedTypewriter(currentPhrase.substring(0, typewriterIndex + 1));
-        setTypewriterIndex(typewriterIndex + 1);
-      }, Math.max(0, typewriterSpeed));
-      return () => clearTimeout(timeout);
-    } else {
-      const pauseTimeout = setTimeout(() => {
-        setTypewriterIndex(0);
-        setDisplayedTypewriter("");
-        setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
-      }, typewriterPause);
-      return () => clearTimeout(pauseTimeout);
-    }
-  }, [typewriterIndex, phraseIndex, hydrated]);
+  const featuredProjects = useMemo(() => projects.filter((p) => p.featured).slice(0, 3), [projects]);
 
   // Remove rotating bio effect
 
@@ -174,11 +185,13 @@ export default function Index() {
     cpu: Cpu,
   };
 
-  const capabilityColumns = (homeSections.capabilities || []).map((col) => {
-    const key = (col.icon || col.title || "").toString().toLowerCase().replace(/\s+/g, "");
-    const Icon = capabilityIconMap[key] || Cpu;
-    return { ...col, icon: Icon };
-  });
+  const capabilityColumns = useMemo(() => {
+    return (homeSections.capabilities || []).map((col) => {
+      const key = (col.icon || col.title || "").toString().toLowerCase().replace(/\s+/g, "");
+      const Icon = capabilityIconMap[key] || Cpu;
+      return { ...col, icon: Icon };
+    });
+  }, [homeSections.capabilities]);
 
   if (!hydrated) return null;
 
@@ -200,15 +213,7 @@ export default function Index() {
                   </div>
                 )}
                 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight font-display leading-tight">
-                  <span className="text-foreground">{typewriterPrefix}</span>
-                  <span className="relative inline-block">
-                    <span className="relative z-10 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl">
-                      {displayedTypewriter}
-                    </span>
-                    <span className="inline-block w-[3px] h-[0.85em] bg-gradient-to-b from-primary to-accent ml-1.5 animate-pulse rounded-full" />
-                  </span>
-                </h1>
+                <TypewriterHeadline />
                 
                 <div className="max-w-xl rounded-2xl dark:border dark:border-border/60 bg-secondary/30 p-6 backdrop-blur mx-auto">
                   <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -266,7 +271,7 @@ export default function Index() {
             </motion.div>
 
             <div className="flex items-center justify-center">
-              <HeroIllustration />
+              <MemoHeroIllustration />
             </div>
           </div>
         </div>

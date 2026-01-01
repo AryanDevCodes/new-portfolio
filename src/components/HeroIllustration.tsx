@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   JavaIcon, SpringBootIcon, ReactIcon, AWSIcon, DockerIcon,
   PostgreSQLIcon, GitIcon, TypeScriptIcon, JavaScriptIcon,
@@ -16,50 +16,26 @@ interface IconPosition {
 }
 
 export function HeroIllustration() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [icons, setIcons] = useState<IconPosition[]>([]);
+  const prefersReducedMotion = useReducedMotion();
 
-  // Initialize icons
-  useEffect(() => {
-    const initialIcons: IconPosition[] = [
-      { angle: 30, orbitRadius: 90, angularSpeed: 0.8, size: 56 },   // Java
-      { angle: 210, orbitRadius: 90, angularSpeed: 0.75, size: 52 }, // Spring Boot
-      { angle: 60, orbitRadius: 140, angularSpeed: 0.6, size: 60 },  // React
-      { angle: 180, orbitRadius: 140, angularSpeed: 0.58, size: 56 },// TypeScript
-      { angle: 300, orbitRadius: 140, angularSpeed: 0.62, size: 52 },// JavaScript
-      { angle: 45, orbitRadius: 190, angularSpeed: 0.5, size: 58 },  // Python
-      { angle: 135, orbitRadius: 190, angularSpeed: 0.48, size: 56 },// Tailwind
-      { angle: 225, orbitRadius: 190, angularSpeed: 0.52, size: 64 },// AWS
-      { angle: 315, orbitRadius: 190, angularSpeed: 0.5, size: 60 }, // Docker
-      { angle: 20, orbitRadius: 240, angularSpeed: 0.4, size: 62 },  // MongoDB
-      { angle: 92, orbitRadius: 240, angularSpeed: 0.42, size: 68 }, // PostgreSQL
-      { angle: 164, orbitRadius: 240, angularSpeed: 0.38, size: 58 },// Git
-      { angle: 236, orbitRadius: 240, angularSpeed: 0.41, size: 54 },// Linux
-      { angle: 308, orbitRadius: 240, angularSpeed: 0.39, size: 50 },// Hibernate
-    ];
-    setIcons(initialIcons);
-  }, []);
-
-  // Animate orbit using requestAnimationFrame
-  useEffect(() => {
-    if (icons.length === 0) return;
-
-    let animationFrame: number;
-
-    const animate = () => {
-      setIcons((prevIcons) =>
-        prevIcons.map((icon) => {
-          let newAngle = icon.angle + icon.angularSpeed;
-          if (newAngle >= 360) newAngle -= 360;
-          return { ...icon, angle: newAngle };
-        })
-      );
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [icons.length]);
+  // NOTE: Avoid per-frame React state updates (they cause jank in prod).
+  // We approximate the prior angularSpeed (deg/frame @ ~60fps) with a duration.
+  const icons: IconPosition[] = [
+    { angle: 30, orbitRadius: 90, angularSpeed: 0.8, size: 56 },   // Java
+    { angle: 210, orbitRadius: 90, angularSpeed: 0.75, size: 52 }, // Spring Boot
+    { angle: 60, orbitRadius: 140, angularSpeed: 0.6, size: 60 },  // React
+    { angle: 180, orbitRadius: 140, angularSpeed: 0.58, size: 56 },// TypeScript
+    { angle: 300, orbitRadius: 140, angularSpeed: 0.62, size: 52 },// JavaScript
+    { angle: 45, orbitRadius: 190, angularSpeed: 0.5, size: 58 },  // Python
+    { angle: 135, orbitRadius: 190, angularSpeed: 0.48, size: 56 },// Tailwind
+    { angle: 225, orbitRadius: 190, angularSpeed: 0.52, size: 64 },// AWS
+    { angle: 315, orbitRadius: 190, angularSpeed: 0.5, size: 60 }, // Docker
+    { angle: 20, orbitRadius: 240, angularSpeed: 0.4, size: 62 },  // MongoDB
+    { angle: 92, orbitRadius: 240, angularSpeed: 0.42, size: 68 }, // PostgreSQL
+    { angle: 164, orbitRadius: 240, angularSpeed: 0.38, size: 58 },// Git
+    { angle: 236, orbitRadius: 240, angularSpeed: 0.41, size: 54 },// Linux
+    { angle: 308, orbitRadius: 240, angularSpeed: 0.39, size: 50 },// Hibernate
+  ];
 
   const iconComponents = [
     JavaIcon, SpringBootIcon, ReactIcon, TypeScriptIcon, JavaScriptIcon,
@@ -68,17 +44,17 @@ export function HeroIllustration() {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full h-[600px] flex items-center justify-center overflow-visible bg-transparent">
+    <div className="relative w-full h-[600px] flex items-center justify-center overflow-visible bg-transparent">
       {/* Background blobs - now transparent/removed to blend with page */}
       <motion.div
         className="absolute w-[400px] h-[400px] rounded-full bg-transparent blur-3xl"
-        animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -30, 0], rotate: [0, 90, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        animate={prefersReducedMotion ? undefined : { scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -30, 0], rotate: [0, 90, 0] }}
+        transition={prefersReducedMotion ? undefined : { duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className="absolute w-[350px] h-[350px] rounded-full bg-transparent blur-3xl"
-        animate={{ scale: [1.2, 1, 1.2], x: [0, -40, 0], y: [0, 40, 0], rotate: [90, 0, 90] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        animate={prefersReducedMotion ? undefined : { scale: [1.2, 1, 1.2], x: [0, -40, 0], y: [0, 40, 0], rotate: [90, 0, 90] }}
+        transition={prefersReducedMotion ? undefined : { duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* Sun */}
@@ -95,11 +71,11 @@ export function HeroIllustration() {
         {/* Sun core */}
         <motion.div
           className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 shadow-2xl flex items-center justify-center"
-          animate={{ 
+          animate={prefersReducedMotion ? undefined : {
             scale: [1, 1.05, 1],
-            rotate: [0, 360] 
+            rotate: [0, 360]
           }}
-          transition={{ 
+          transition={prefersReducedMotion ? undefined : {
             scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
             rotate: { duration: 30, repeat: Infinity, ease: "linear" }
           }}
@@ -124,47 +100,55 @@ export function HeroIllustration() {
         />
       ))}
 
-      {/* Orbiting icons */}
+      {/* Orbiting icons (no per-frame React state updates) */}
       {icons.map((icon, index) => {
         const IconComponent = iconComponents[index];
-        const angleRad = (icon.angle * Math.PI) / 180;
-        const x = Math.cos(angleRad) * icon.orbitRadius;
-        const y = Math.sin(angleRad) * icon.orbitRadius;
+        // Previous code treated angularSpeed as degrees-per-frame (~60fps).
+        // Convert to seconds per full orbit: deg/sec ≈ angularSpeed * 60 => duration = 360 / (angularSpeed * 60) = 6 / angularSpeed
+        const orbitDurationSeconds = Math.max(6 / Math.max(0.1, icon.angularSpeed), 6);
 
         return (
           <motion.div
             key={index}
             className="absolute top-1/2 left-1/2 z-20"
-            style={{
-              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-              width: icon.size,
-              height: icon.size,
-            }}
+            initial={{ rotate: icon.angle }}
+            animate={{ rotate: icon.angle + 360 }}
+            transition={{ duration: prefersReducedMotion ? 120 : orbitDurationSeconds, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: "0px 0px" }}
           >
-            {/* Planet glow trail */}
             <div
-              className={`absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-full blur-xl opacity-60`}
-            />
-
-            {/* Planet body */}
-            <motion.div 
-              className="relative group"
-              whileHover={{ scale: 1.15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="absolute top-0 left-0"
+              style={{
+                width: icon.size,
+                height: icon.size,
+                transform: `translateX(${icon.orbitRadius}px) translate(-50%, -50%)`,
+              }}
             >
-              <div
-                className={`absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-2xl blur-lg group-hover:blur-xl transition-all`}
-              />
+              {/* Planet glow trail */}
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-full blur-xl opacity-60" />
+
+              {/* Planet body */}
               <motion.div
-                className={`relative w-full h-full rounded-2xl bg-white/90 backdrop-blur-xl flex items-center justify-center shadow-2xl border-2 border-white/50 p-2 group-hover:border-cyan-400/60 transition-all`}
-                whileHover={{
-                  borderColor: "rgba(255, 255, 255, 0.8)",
-                  boxShadow: "0 0 30px rgba(255, 255, 255, 0.5)",
-                }}
+                className="relative group"
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.15 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <IconComponent />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-2xl blur-lg group-hover:blur-xl transition-all" />
+                <motion.div
+                  className="relative w-full h-full rounded-2xl bg-white/90 backdrop-blur-xl flex items-center justify-center shadow-2xl border-2 border-white/50 p-2 group-hover:border-cyan-400/60 transition-all"
+                  whileHover={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          borderColor: "rgba(255, 255, 255, 0.8)",
+                          boxShadow: "0 0 30px rgba(255, 255, 255, 0.5)",
+                        }
+                  }
+                >
+                  <IconComponent />
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </div>
           </motion.div>
         );
       })}
@@ -184,12 +168,16 @@ export function HeroIllustration() {
             style={{
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
             }}
-            animate={{ opacity: [0.2, 0.6, 0.2], scale: [1, 1.5, 1] }}
-            transition={{
-              duration: 2 + (i % 4) * 0.5,
-              repeat: Infinity,
-              delay: (i % 5) * 0.4,
-            }}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.2, 0.6, 0.2], scale: [1, 1.5, 1] }}
+            transition={
+              prefersReducedMotion
+                ? undefined
+                : {
+                    duration: 2 + (i % 4) * 0.5,
+                    repeat: Infinity,
+                    delay: (i % 5) * 0.4,
+                  }
+            }
           />
         );
       })}
@@ -201,17 +189,25 @@ export function HeroIllustration() {
           boxShadow:
             "0 0 10px rgba(34, 211, 238, 0.8), 0 0 20px rgba(34, 211, 238, 0.4)",
         }}
-        animate={{
-          x: [-100, 600],
-          y: [50, 400],
-          opacity: [0, 1, 1, 0],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          repeatDelay: 8,
-          ease: "linear",
-        }}
+        animate={
+          prefersReducedMotion
+            ? undefined
+            : {
+                x: [-100, 600],
+                y: [50, 400],
+                opacity: [0, 1, 1, 0],
+              }
+        }
+        transition={
+          prefersReducedMotion
+            ? undefined
+            : {
+                duration: 4,
+                repeat: Infinity,
+                repeatDelay: 8,
+                ease: "linear",
+              }
+        }
       />
     </div>
   );

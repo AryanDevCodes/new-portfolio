@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -89,8 +90,8 @@ export default function Blog() {
     }
   };
 
-  const featuredPosts_ = posts.filter((p) => p.isFeatured);
-  const regularPosts = posts.filter((p) => !p.isFeatured);
+  const featuredPosts_ = useMemo(() => posts.filter((p) => p.isFeatured), [posts]);
+  const regularPosts = useMemo(() => posts.filter((p) => !p.isFeatured), [posts]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

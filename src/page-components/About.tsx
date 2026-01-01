@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Award, GraduationCap, Briefcase, Code2, Zap, CheckCircle2, ArrowRight, Sparkles, User, Target, BookOpen } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -73,18 +73,29 @@ export default function About() {
 
   const safePersonal = personalInfo ?? {};
 
-  const displayedCerts = (adminCerts && adminCerts.length > 0) ? adminCerts : [];
-  const displaySkills = (adminSkills && adminSkills.length > 0) ? adminSkills : skillCategories;
-  const displayExperience = (Array.isArray(adminExperience) && adminExperience.length > 0)
-    ? adminExperience
-    : (Array.isArray(experience) && experience.length > 0)
-      ? experience
-      : [];
-  const displayEducation = (Array.isArray(adminEducation) && adminEducation.length > 0)
-    ? adminEducation
-    : (Array.isArray(education) && Array.isArray(education) && education.length > 0)
-      ? education
-      : [];
+  const displayedCerts = useMemo(() => (
+    adminCerts && adminCerts.length > 0 ? adminCerts : []
+  ), [adminCerts]);
+
+  const displaySkills = useMemo(() => (
+    adminSkills && adminSkills.length > 0 ? adminSkills : skillCategories
+  ), [adminSkills, skillCategories]);
+
+  const displayExperience = useMemo(() => (
+    Array.isArray(adminExperience) && adminExperience.length > 0
+      ? adminExperience
+      : Array.isArray(experience) && experience.length > 0
+        ? experience
+        : []
+  ), [adminExperience, experience]);
+
+  const displayEducation = useMemo(() => (
+    Array.isArray(adminEducation) && adminEducation.length > 0
+      ? adminEducation
+      : Array.isArray(education) && education.length > 0
+        ? education
+        : []
+  ), [adminEducation, education]);
 
   if (!hydrated) return null;
 
