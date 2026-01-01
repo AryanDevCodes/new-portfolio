@@ -3,7 +3,20 @@ import { getAdminData } from "@/lib/admin-storage";
 
 export async function GET() {
   try {
-    const keys = ["skills", "certifications", "heroData", "socialLinks", "experience", "education", "mediumSettings", "featuredPosts", "additionalData"];
+    const keys = [
+      "personalInfo",
+      "projects",
+      "additionalProjects",
+      "skills",
+      "certifications",
+      "heroData",
+      "socialLinks",
+      "experience",
+      "education",
+      "mediumSettings",
+      "featuredPosts",
+      "additionalData",
+    ];
     
     const exportData: Record<string, any> = {};
     

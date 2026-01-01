@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAdmin } from "@/contexts/AdminContext";
-import { useProjects, AdditionalProject } from "@/hooks/useProjects";
 import { Project } from "@/data/projects";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +14,13 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Lock, LogOut, Plus, Trash2, Edit, RotateCcw, Terminal, Shield, Rss, ExternalLink, Save, Star, Award, Zap, FileText, Link as LinkIcon, Database } from "lucide-react";
 import type { Certification } from "@/contexts/AdminContext";
-import { Navbar } from "@/components/Navbar";
 import { SkillsManager } from "./AdminSkillsManager";
 import { HeroDataEditor } from "./AdminHeroDataEditor";
 import { SocialLinksManager } from "./AdminSocialLinksManager";
 import { ExperienceManager } from "./AdminExperienceManager";
 import { EducationManager } from "./AdminEducationManager";
 import { DataSeeder } from "./DataSeeder";
+import type { AdditionalProject } from "@/contexts/AdminContext";
 
 function LoginForm() {
   const [password, setPassword] = useState("");
@@ -45,7 +44,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.1]">
         <div className="absolute top-[20%] left-[10%] w-[400px] h-[400px] bg-primary/30 rounded-full blur-3xl" />
         <div className="absolute bottom-[-10%] right-[5%] w-[500px] h-[500px] bg-accent/25 rounded-full blur-3xl" />
@@ -56,7 +55,7 @@ function LoginForm() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="border border-border bg-card/80 backdrop-blur shadow-[0_25px_60px_-35px_rgba(0,0,0,0.55)]">
+        <Card className="dark:border dark:border-border bg-card/80 backdrop-blur shadow-[0_25px_60px_-35px_rgba(0,0,0,0.55)]">
           <CardHeader className="text-center pb-6">
             <motion.div
               className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center shadow-[0_8px_30px_-12px_rgba(59,130,246,0.4)]"
@@ -173,7 +172,7 @@ function MediumSettingsForm() {
         </div>
 
         {username && (
-          <div className="p-3 rounded-lg bg-muted/50 border border-border">
+          <div className="p-3 rounded-lg bg-muted/50 dark:border dark:border-border">
             <p className="text-sm text-muted-foreground mb-1">RSS Feed URL:</p>
             <code className="text-xs font-mono text-primary break-all">
               https://medium.com/feed/@{username}
@@ -774,8 +773,8 @@ function AdditionalProjectForm({
 }
 
 function AdminDashboard() {
-  const { logout } = useAdmin();
   const {
+    logout,
     projects,
     additionalProjects,
     addProject,
@@ -784,8 +783,8 @@ function AdminDashboard() {
     addAdditionalProject,
     updateAdditionalProject,
     deleteAdditionalProject,
-    resetToDefaults,
-  } = useProjects();
+    resetProjects,
+  } = useAdmin();
 
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -831,14 +830,14 @@ function AdminDashboard() {
   };
 
   const handleReset = () => {
-    if (confirm("This will reset all projects to their original state. Continue?")) {
-      resetToDefaults();
-      toast({ title: "Reset Complete", description: "Projects restored to defaults" });
+    if (confirm("This will clear all projects. Continue?")) {
+      resetProjects();
+      toast({ title: "Cleared", description: "Projects cleared" });
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <main className="container mx-auto px-4 pt-24 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -857,10 +856,6 @@ function AdminDashboard() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset
-              </Button>
               <Button variant="destructive" size="sm" onClick={logout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -869,7 +864,7 @@ function AdminDashboard() {
           </div>
 
           <Tabs defaultValue="featured" className="space-y-6">
-            <TabsList className="grid w-full max-w-full grid-cols-5 sm:grid-cols-6 lg:grid-cols-11">
+            <TabsList className="grid w-full max-w-full grid-cols-6 sm:grid-cols-7 lg:grid-cols-12">
               <TabsTrigger value="featured" className="text-xs">Featured</TabsTrigger>
               <TabsTrigger value="additional" className="text-xs">Additional</TabsTrigger>
               <TabsTrigger value="blogs" className="text-xs">Blogs</TabsTrigger>
@@ -880,6 +875,7 @@ function AdminDashboard() {
               <TabsTrigger value="social" className="text-xs">Social</TabsTrigger>
               <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
               <TabsTrigger value="education" className="text-xs">Education</TabsTrigger>
+              <TabsTrigger value="redis" className="text-xs font-bold text-primary">Redis</TabsTrigger>
               <TabsTrigger value="data" className="text-xs">Data</TabsTrigger>
             </TabsList>
 
@@ -1046,6 +1042,82 @@ function AdminDashboard() {
               <EducationManager />
             </TabsContent>
 
+            <TabsContent value="redis" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="w-5 h-5 text-primary" />
+                    Redis Data Manager
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    All portfolio data is automatically saved to Redis through the tabs above. Use the specific tabs to manage each data type.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">👤 Personal Info</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">personalInfo</code></p>
+                      <p className="text-xs text-muted-foreground">Contains: name, email, location, bio, social links</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-accent/20 bg-accent/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">📁 Projects</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">projects</code></p>
+                      <p className="text-xs text-muted-foreground">Featured & additional projects with full details</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">💻 Skills</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">skills</code></p>
+                      <p className="text-xs text-muted-foreground">Organized by category with individual skills</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-accent/20 bg-accent/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">💼 Experience</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">experience</code></p>
+                      <p className="text-xs text-muted-foreground">Job positions, companies, and descriptions</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">🎓 Education</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">education</code></p>
+                      <p className="text-xs text-muted-foreground">Degrees, institutions, and years</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-accent/20 bg-accent/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">🏆 Certifications</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">certifications</code></p>
+                      <p className="text-xs text-muted-foreground">Professional certifications with dates</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">🔗 Social Links</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">socialLinks</code></p>
+                      <p className="text-xs text-muted-foreground">GitHub, LinkedIn, Twitter, and more</p>
+                    </div>
+                    <div className="p-4 rounded-lg border border-accent/20 bg-accent/5 space-y-2">
+                      <h4 className="font-semibold flex items-center gap-2">🎨 Hero Data</h4>
+                      <p className="text-sm text-muted-foreground">Stored in Redis with key: <code className="text-primary font-mono text-xs">heroData</code></p>
+                      <p className="text-xs text-muted-foreground">Hero section title and subtitle</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 rounded-lg bg-blue-500/5 border border-blue-500/20 space-y-3">
+                    <p className="text-sm font-semibold">📋 How to Manage Data:</p>
+                    <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                      <li>Click on the relevant tab above (Skills, Experience, Education, etc.)</li>
+                      <li>Add, edit, or delete entries using the form</li>
+                      <li>Click "Save" to automatically store to Redis</li>
+                      <li>All changes are persisted immediately to Redis</li>
+                      <li>Hard refresh your browser (Ctrl+Shift+R) to see updates on the website</li>
+                    </ol>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
+                    <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 mb-2">⚠️ Important:</p>
+                    <p className="text-sm text-muted-foreground">
+                      All data is stored in Redis. Please use the specific tabs above to add or remove items. For backups or exports, use the Data tab.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="data" className="space-y-6">
               <DataSeeder />
             </TabsContent>
@@ -1058,12 +1130,11 @@ function AdminDashboard() {
 
 export default function Admin() {
   const [hydrated, setHydrated] = useState(false);
+  const { isAuthenticated } = useAdmin();
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   if (!hydrated) return null;
-
-  const { isAuthenticated } = useAdmin();
   return isAuthenticated ? <AdminDashboard /> : <LoginForm />;
 }

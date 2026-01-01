@@ -33,68 +33,12 @@ Backend engineer focused on building scalable, production-grade systems.
   heroSubtitle: "Backend Engineer & System Architect",
   heroDescription: `I design and build secure, scalable backend systems with clean architecture, 
 role-based access control, and production-grade performance.`,
+  ctaLabel: "Get in Touch",
 
   // About Section
   aboutTitle: "Backend Engineer. System Thinker. Builder.",
   aboutDescription: `I design and build secure, high-performance, real-time web applications 
 with clean architecture, role-based access control, and production-grade backend systems.`,
-
-  story: [
-    {
-      category: "Early Curiosity & Self-Learning",
-      entries: [
-        {
-          heading: "Before 2022",
-          description: "My interest in technology started early, driven by curiosity about how applications and digital systems work behind the scenes. With limited resources, I began learning independently using my phone—experimenting with mod APKs, exploring application behavior, customizing code, and learning through online content. This phase shaped my problem-solving mindset and technical curiosity."
-        }
-      ]
-    },
-    {
-      category: "Stepping Into Engineering",
-      entries: [
-        {
-          heading: "2022 — B.Tech (AIML)",
-          description: "In 2022, I moved to a new state to pursue my B.Tech in Artificial Intelligence & Machine Learning. While the curriculum focused on AIML, my long-term goal was clear—to become a strong software developer capable of building real-world systems."
-        }
-      ]
-    },
-    {
-      category: "Choosing Java as My Core Stack",
-      entries: [
-        {
-          heading: "2023–2024",
-          description: "After studying industry trends, I deliberately chose Java as my primary language due to its widespread adoption in production systems. Without formal coaching, I learned Java from scratch using documentation, YouTube, handwritten notes, and consistent practice—building a strong foundation in Core Java, Advanced Java, web fundamentals, and database connectivity."
-        }
-      ]
-    },
-    {
-      category: "Backend Engineering with Spring Boot",
-      entries: [
-        {
-          heading: "2024–2025",
-          description: "I transitioned into backend development using Spring and Spring Boot, where I built RESTful APIs, implemented JWT-based authentication and authorization, handled security concerns, and managed backend workflows. Alongside backend development, I developed intermediate frontend skills to deliver complete end-to-end applications."
-        }
-      ]
-    },
-    {
-      category: "Reality Check: DSA Matters",
-      entries: [
-        {
-          heading: "2025",
-          description: "A key realization in my journey was the importance of Data Structures & Algorithms. Underestimating DSA early on led to missed interview opportunities. This experience reshaped my approach toward engineering preparation and problem-solving."
-        }
-      ]
-    },
-    {
-      category: "Present Focus: Strong Fundamentals & Scale",
-      entries: [
-        {
-          heading: "2025–Present",
-          description: "Today, I actively combine DSA practice with development, focusing on writing efficient, scalable, and maintainable systems. My goal is to continuously strengthen engineering fundamentals while building secure, production-ready applications."
-        }
-      ]
-    }
-  ],
 };
 
 export const education = {
@@ -158,7 +102,25 @@ export const homeSections = {
   featuredProjectsSubtitle: "Things I've built",
   allProjectsButton: "View all projects",
 
-  ctaHeading: "// Get In Touch"
+  ctaHeading: "// Get In Touch",
+
+  capabilities: [
+    {
+      title: "Architecture",
+      icon: "layers",
+      items: ["Domain-driven design", "API strategy & governance", "Async & event-driven", "Performance budgets"],
+    },
+    {
+      title: "Platform",
+      icon: "server",
+      items: ["Spring Boot services", "AuthN/AuthZ & RBAC", "CI/CD & observability", "Cloud-native patterns"],
+    },
+    {
+      title: "Delivery",
+      icon: "shieldcheck",
+      items: ["Resilience & SLIs", "Perf testing & profiling", "Incident-ready runbooks", "Docs your team can ship"],
+    },
+  ],
 };
 
 // Navbar links
@@ -183,6 +145,9 @@ export const contactPage = {
   title: "Get In Touch",
   description: `I'm currently looking for backend engineering opportunities. Whether you 
 have a question, an opportunity, or just want to say hi—I'll do my best to get back to you!`,
+
+  infoKicker: "Get in Touch",
+  infoTitle: "Connect With Me",
 
   links: [
     {
@@ -219,15 +184,40 @@ have a question, an opportunity, or just want to say hi—I'll do my best to get
     subject: "Subject",
     message: "Message",
     submitButton: "Send Message"
-  }
+  },
+
+  otherWaysKicker: "// Other Ways",
+  otherWaysTitle: "More Ways to Connect",
+  otherMethods: [
+    {
+      title: "Quick Question?",
+      description: "Use the form above for fastest response",
+      icon: "⚡",
+    },
+    {
+      title: "Social Media",
+      description: "Connect with me on LinkedIn or GitHub",
+      icon: "🔗",
+    },
+    {
+      title: "Direct Email",
+      description: "Reach out via email",
+      icon: "📧",
+    },
+  ],
 };
 
 // Projects page
 export const projectsPage = {
   heading: "// Projects",
+  badgeText: "Portfolio & Case Studies",
   title: "Things I've Built",
   description: `A collection of projects showcasing my expertise in backend engineering, 
 real-time systems, and full-stack development.`,
+  tags: ["Scalable", "Real-time", "Secure", "Observable", "Documented"],
+  featuredKicker: "// Featured Builds",
+  otherKicker: "// Other Projects",
+  otherDescription: "Additional projects and experiments that showcase different aspects of my work.",
   featuredHeading: "Featured Projects",
   otherHeading: "Other Projects"
 };

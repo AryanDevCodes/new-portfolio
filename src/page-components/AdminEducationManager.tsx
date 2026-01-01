@@ -12,10 +12,11 @@ import { Plus, Trash2, Edit, Save, RotateCcw, GraduationCap } from "lucide-react
 export function EducationManager() {
   const { education, updateEducation } = useAdmin();
   const safeEducation = Array.isArray(education) ? education : [];
-  console.log("👁️  EducationManager received education:", education, "Safe:", safeEducation);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<Partial<Education>>({});
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [persistOk, setPersistOk] = useState<boolean | null>(null);
 
   const resetForm = () => {
     setFormData({});
@@ -29,7 +30,7 @@ export function EducationManager() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.institution || !formData.degree || !formData.field || !formData.startDate) {
       toast({ title: "Required fields missing", variant: "destructive" });
       return;
@@ -41,16 +42,21 @@ export function EducationManager() {
     } else {
       newEducation.push({ ...formData, id: Date.now().toString() } as Education);
     }
-    
-    updateEducation(newEducation);
-    toast({ title: "Success", description: `Education ${editingIndex !== null ? 'updated' : 'added'}` });
+    setSaving(true);
+    const ok = await updateEducation(newEducation);
+    setPersistOk(ok);
+    setSaving(false);
+    toast({ title: ok ? "Saved to Redis" : "Saved locally", description: `Education ${editingIndex !== null ? 'updated' : 'added'}` , variant: ok ? undefined : "destructive"});
     resetForm();
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     const newEducation = safeEducation.filter((_, i) => i !== index);
-    updateEducation(newEducation);
-    toast({ title: "Deleted", description: "Education entry removed" });
+    setSaving(true);
+    const ok = await updateEducation(newEducation);
+    setPersistOk(ok);
+    setSaving(false);
+    toast({ title: ok ? "Deleted" : "Delete failed (local only)", description: "Education entry removed", variant: ok ? undefined : "destructive" });
   };
 
   return (
@@ -108,8 +114,16 @@ export function EducationManager() {
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={resetForm}><RotateCcw className="w-4 h-4 mr-2" />Cancel</Button>
-                <Button onClick={handleSave} variant="terminal"><Save className="w-4 h-4 mr-2" />Save</Button>
+                <Button onClick={handleSave} variant="terminal" disabled={saving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : 'Save'}
+                </Button>
               </div>
+              {persistOk !== null && (
+                <p className={`text-xs ${persistOk ? 'text-green-600' : 'text-destructive'} mt-2`}>
+                  {persistOk ? 'Saved to server' : 'Server save failed; data cached locally'}
+                </p>
+              )}
             </motion.div>
           )}
         </CardContent>

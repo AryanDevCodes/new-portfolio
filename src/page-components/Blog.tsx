@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Calendar, Clock, BookOpen, Rss, Settings, Star, Sparkles } from "lucide-react";
+import { ExternalLink, Calendar, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
 
 interface BlogPost {
@@ -21,6 +19,19 @@ interface BlogPost {
 }
 
 const RSS_TO_JSON_API = "https://api.rss2json.com/v1/api.json";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -52,359 +63,246 @@ export default function Blog() {
           link: item.link,
           pubDate: item.pubDate,
           author: item.author,
-          thumbnail: item.thumbnail || extractImage(item.description) || "",
-          description: stripHtml(item.description).slice(0, 200) + "...",
+          thumbnail: item.thumbnail || "",
+          description: item.description,
           categories: item.categories || [],
-          isFeatured: featuredPosts.includes(item.link),
         }));
-        
-        // Sort: featured posts first, then by date
-        const sortedPosts = formattedPosts.sort((a, b) => {
-          if (a.isFeatured && !b.isFeatured) return -1;
-          if (!a.isFeatured && b.isFeatured) return 1;
-          return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
-        });
-        
-        setPosts(sortedPosts);
+
+        if (Array.isArray(featuredPosts) && featuredPosts.length > 0) {
+          const featuredTitles = (featuredPosts as any[]).map((p: any) => p.title);
+          formattedPosts.forEach((p) => {
+            if (featuredTitles.includes(p.title)) {
+              p.isFeatured = true;
+            }
+          });
+        }
+
+        setPosts(formattedPosts);
       } else {
-        setError("No posts found. Make sure the Medium username is correct.");
+        setError("Failed to load blog posts");
       }
-    } catch (err) {
-      setError("Failed to fetch blog posts. Please try again later.");
-      console.error("Error fetching Medium feed:", err);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setError("Error loading blog posts");
     } finally {
       setLoading(false);
     }
   };
 
-  const extractImage = (html: string): string => {
-    const match = html.match(/<img[^>]+src="([^">]+)"/);
-    return match ? match[1] : "";
+  const featuredPosts_ = posts.filter((p) => p.isFeatured);
+  const regularPosts = posts.filter((p) => !p.isFeatured);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
 
-  const stripHtml = (html: string): string => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const estimateReadTime = (description: string): number => {
-    const wordsPerMinute = 200;
-    const words = description.split(/\s+/).length * 5; // Multiply since we only have snippet
-    return Math.max(1, Math.ceil(words / wordsPerMinute));
-  };
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+  const estimateReadTime = (description: string) => {
+    const words = description.split(" ").length;
+    return Math.ceil(words / 200);
   };
 
   return (
     <>
-      <section className="pt-16 pb-16 px-0 sm:px-2 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.12]">
-          <div className="absolute top-[-15%] left-[5%] w-[360px] h-[360px] bg-primary/25 rounded-full blur-3xl" />
-          <div className="absolute bottom-[-20%] right-[12%] w-[420px] h-[420px] bg-accent/18 rounded-full blur-3xl" />
+      {/* Hero Section */}
+      <section className="relative min-h-[80vh] flex flex-col justify-center overflow-hidden py-20">
+        <div className="absolute inset-0 opacity-[0.08]">
+          <div className="absolute top-[-10%] left-[5%] w-[420px] h-[420px] bg-primary/25 rounded-full blur-3xl" />
+          <div className="absolute bottom-[-20%] right-[8%] w-[480px] h-[480px] bg-accent/20 rounded-full blur-3xl" />
         </div>
 
-        <div className="container mx-auto max-w-7xl relative z-10">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-10 -mx-8"
-          >
-            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur shadow-[0_25px_60px_-35px_rgba(0,0,0,0.55)] overflow-hidden">
-              <div className="flex flex-col gap-4 p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-3 justify-between">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-mono text-muted-foreground">
-                    <Sparkles className="w-3.5 h-3.5 text-primary" />
-                    <span>blog.tsx</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
-                    <Rss className="w-4 h-4 text-primary" />
-                    Medium RSS feed
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h1 className="text-3xl md:text-4xl font-bold text-gradient-animated">Blog & Articles</h1>
-                  <p className="text-base text-muted-foreground max-w-2xl">
-                    Thoughts, tutorials, and notes on building resilient products, realtime systems, and developer experience.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {["Architecture", "Realtime", "DX", "Learning"].map((pill) => (
-                    <div key={pill} className="rounded-xl border border-border bg-card/80 px-3 py-2 text-center text-xs font-mono text-muted-foreground">
-                      {pill}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Error State */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-              <p className="text-muted-foreground mb-4">{error}</p>
-              <Button onClick={fetchPosts} variant="terminal">
-                Try Again
-              </Button>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div variants={container} initial="hidden" animate="show" className="max-w-3xl mx-auto text-center space-y-8">
+            <motion.div variants={item} className="inline-flex items-center gap-2 px-4 py-2 rounded-full dark:border dark:border-primary/30 bg-primary/5 w-fit mx-auto">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-sm font-medium text-primary">Blog & Insights</span>
             </motion.div>
-          )}
 
-          {/* Not Configured State */}
-          {!loading && !error && !mediumUsername && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="text-xl font-bold mb-2">Medium Username Not Configured</h3>
-              <p className="text-muted-foreground mb-6">
-                To display your Medium blog posts, please configure your Medium username in the settings.
+            <motion.div variants={item} className="space-y-4">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight font-display">
+                Latest Articles
+              </h1>
+              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto font-light">
+                Thoughts on backend architecture, system design, and software engineering best practices.
               </p>
             </motion.div>
-          )}
+          </motion.div>
+        </div>
+      </section>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {[1, 2, 3, 4].map((i) => (
-                <Card key={i} className="overflow-hidden">
-                  <Skeleton className="h-48 w-full" />
-                  <CardContent className="p-6 space-y-4">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-20" />
-                    </div>
-                  </CardContent>
-                </Card>
+      {/* Content */}
+      <section className="py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-[200px] rounded-2xl bg-card/40 dark:border dark:border-border/50 animate-pulse" />
               ))}
             </div>
-          )}
-
-          {/* Posts Grid */}
-          {!loading && !error && posts.length > 0 && (
-            <motion.div
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className="space-y-8"
-            >
-              {/* Featured Posts Section */}
-              {posts.some(p => p.isFeatured) && (
-                <div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="flex items-center gap-3 mb-6"
-                  >
-                    <Star className="w-5 h-5 text-primary fill-primary animate-pulse" />
-                    <h2 className="text-2xl font-bold font-display">Featured Articles</h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-                  </motion.div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {posts.filter(p => p.isFeatured).map((post, idx) => (
-                      <motion.div
-                        key={post.link}
-                        variants={item}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                      >
-                        <a
-                          href={post.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block group h-full"
-                        >
-                          <motion.div whileHover={{ y: -6 }} className="h-full">
-                            <Card className="h-full overflow-hidden border border-primary/40 bg-card/70 hover:border-primary/60 transition-all duration-300 shadow-sm">
-                              {post.thumbnail && (
-                                <div className="relative h-36 overflow-hidden bg-muted">
-                                  <img src={post.thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-background/85 to-transparent" />
-                                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-mono inline-flex items-center gap-1 shadow">
-                                    <Star className="w-3 h-3 fill-current" />
-                                    Featured
-                                  </div>
-                                </div>
-                              )}
-                              <CardContent className="p-4 space-y-2">
-                                <h3 className="text-base font-semibold font-display group-hover:text-primary transition-colors line-clamp-2">
-                                  {post.title}
-                                </h3>
-                                <p className="text-muted-foreground text-xs line-clamp-2">
-                                  {post.description}
-                                </p>
-                                {post.categories.length > 0 && (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {post.categories.slice(0, 2).map((cat) => (
-                                      <span key={cat} className="tech-tag text-xs">{cat}</span>
-                                    ))}
-                                  </div>
-                                )}
-                                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(post.pubDate)}</span>
-                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{estimateReadTime(post.description)} min</span>
-                                  </div>
-                                  <ExternalLink className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        </a>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* All Articles / Latest Articles Section */}
-              {posts.some(p => !p.isFeatured) && (
-                <div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="flex items-center gap-3 mb-8"
-                  >
-                    <h2 className="text-2xl font-bold font-display">
-                      {posts.some(p => p.isFeatured) ? "Latest Articles" : "All Articles"}
-                    </h2>
-                    <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-                  </motion.div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {posts.filter(p => !p.isFeatured).map((post, idx) => (
-                      <motion.div
-                        key={post.link}
-                        variants={item}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.08 }}
-                      >
-                        <a
-                          href={post.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block group h-full"
-                        >
-                          <motion.div whileHover={{ y: -6 }} className="h-full">
-                            <Card className="h-full overflow-hidden border border-border/60 bg-card/70 hover:border-primary/30 transition-all duration-300 shadow-sm">
-                              {post.thumbnail && (
-                                <div className="relative h-32 overflow-hidden bg-muted">
-                                  <img src={post.thumbnail} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                                </div>
-                              )}
-                              <CardContent className="p-4 space-y-2">
-                                <h3 className="text-base font-semibold font-display group-hover:text-primary transition-colors line-clamp-2">
-                                  {post.title}
-                                </h3>
-                                <p className="text-muted-foreground text-xs line-clamp-2">
-                                  {post.description}
-                                </p>
-                                {post.categories.length > 0 && (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {post.categories.slice(0, 2).map((cat) => (
-                                      <span key={cat} className="tech-tag text-xs">{cat}</span>
-                                    ))}
-                                  </div>
-                                )}
-                                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(post.pubDate)}</span>
-                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{estimateReadTime(post.description)} min</span>
-                                  </div>
-                                  <ExternalLink className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        </a>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Empty State */}
-          {!loading && !error && posts.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12"
-            >
-              <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-              <h3 className="text-xl font-bold mb-2">No posts yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Blog posts from Medium will appear here.
-              </p>
-              <Button asChild variant="terminal">
-                <a
-                  href={`https://medium.com/@${mediumUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Visit Medium Profile
-                </a>
-              </Button>
-            </motion.div>
-          )}
-
-          {/* CTA */}
-          {!loading && posts.length > 0 && (
+          ) : error ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-center mt-8"
+              className="text-center py-12 space-y-4"
             >
-              <Button asChild variant="terminal" size="lg">
-                <a
-                  href={`https://medium.com/@${mediumUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Read More on Medium
-                </a>
-              </Button>
+              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
+              <p className="text-lg text-muted-foreground">{error}</p>
+              <p className="text-sm text-muted-foreground">Check back soon for new articles.</p>
             </motion.div>
+          ) : posts.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-12 space-y-4"
+            >
+              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
+              <p className="text-lg text-muted-foreground">No blog posts yet</p>
+              <p className="text-sm text-muted-foreground">Connect a Medium account to display articles here.</p>
+            </motion.div>
+          ) : (
+            <>
+              {/* Featured Posts */}
+              {featuredPosts_.length > 0 && (
+                <div className="mb-16">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className="space-y-4 mb-8"
+                  >
+                    <p className="text-primary font-mono text-sm uppercase tracking-widest">// Featured</p>
+                    <h2 className="text-2xl sm:text-3xl font-bold font-display">Must Read</h2>
+                  </motion.div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {featuredPosts_.map((post, i) => (
+                      <motion.a
+                        key={post.link}
+                        href={post.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1, duration: 0.5 }}
+                        className="group rounded-2xl dark:border dark:border-border/50 bg-card/40 backdrop-blur-md overflow-hidden dark:hover:border-primary/30 hover:bg-card/60 transition-all duration-300"
+                        whileHover={{ y: -4 }}
+                      >
+                        {post.thumbnail && (
+                          <div className="relative h-[200px] w-full overflow-hidden bg-secondary/50">
+                            <img
+                              src={post.thumbnail}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                          </div>
+                        )}
+                        <div className="p-6 space-y-3">
+                          <h3 className="text-lg font-bold font-display group-hover:text-primary transition-colors line-clamp-2">
+                            {post.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{post.description}</p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono pt-2">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(post.pubDate)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {estimateReadTime(post.description)} min read
+                            </span>
+                          </div>
+                        </div>
+                      </motion.a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Posts */}
+              {regularPosts.length > 0 && (
+                <div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className="space-y-4 mb-8"
+                  >
+                    <p className="text-primary font-mono text-sm uppercase tracking-widest">// All Articles</p>
+                    <h2 className="text-2xl sm:text-3xl font-bold font-display">Recent Posts</h2>
+                  </motion.div>
+
+                  <div className="space-y-4">
+                    {regularPosts.map((post, i) => (
+                      <motion.a
+                        key={post.link}
+                        href={post.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05, duration: 0.5 }}
+                        className="group block rounded-2xl dark:border dark:border-border/50 bg-card/40 backdrop-blur-md p-5 sm:p-6 dark:hover:border-primary/30 hover:bg-card/60 transition-all duration-300"
+                        whileHover={{ x: 4 }}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-2">
+                            <h3 className="text-lg font-bold font-display group-hover:text-primary transition-colors line-clamp-2">
+                              {post.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-1">{post.description}</p>
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono pt-2">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(post.pubDate)}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {estimateReadTime(post.description)} min read
+                              </span>
+                            </div>
+                          </div>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
+                        </div>
+                      </motion.a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 sm:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.05]">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/30 rounded-full blur-3xl" />
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-2xl mx-auto text-center space-y-6"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold font-display">More Content Coming</h2>
+            <p className="text-lg text-muted-foreground">
+              Subscribe to stay updated on new articles about backend architecture and system design.
+            </p>
+            <Button size="lg" asChild className="gap-2">
+              <a href="https://medium.com" target="_blank" rel="noopener noreferrer">
+                Follow on Medium
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </Button>
+          </motion.div>
         </div>
       </section>
     </>

@@ -1,8 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { certifications as staticCerts } from "@/data/skills";
-import { personalInfo, education as staticEducation, experience as staticExperience } from "@/data/portfolio-data";
+import type { Project } from "@/data/projects";
 
 interface MediumSettings {
   username: string;
@@ -27,9 +26,25 @@ export interface Skill {
   items: string[];
 }
 
+export interface AdditionalProject {
+  title: string;
+  description: string;
+  tech: string[];
+  highlight: string;
+}
+
 export interface HeroData {
   bio?: string;
   tagline?: string;
+  role?: string;
+  currentFocus?: string;
+  location?: string;
+  timezone?: string;
+  strength?: string;
+  techStack?: string;
+  availability?: string;
+  availability_status?: string;
+  description?: string;
 }
 
 export interface SocialLink {
@@ -64,6 +79,7 @@ interface AdminContextType {
   isAuthenticated: boolean;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
+  clearAllLocalStorage: () => void; // For emergency cache clearing
   mediumSettings: MediumSettings;
   updateMediumSettings: (settings: MediumSettings) => void;
   featuredPosts: string[];
@@ -79,9 +95,18 @@ interface AdminContextType {
   socialLinks: SocialLink[];
   updateSocialLinks: (links: SocialLink[]) => void;
   experience: Experience[];
-  updateExperience: (exp: Experience[]) => void;
+  updateExperience: (exp: Experience[]) => Promise<boolean>;
   education: Education[];
-  updateEducation: (edu: Education[]) => void;
+  updateEducation: (edu: Education[]) => Promise<boolean>;
+  projects: Project[];
+  additionalProjects: AdditionalProject[];
+  addProject: (project: Project) => void;
+  updateProject: (slug: string, project: Project) => void;
+  deleteProject: (slug: string) => void;
+  addAdditionalProject: (project: AdditionalProject) => void;
+  updateAdditionalProject: (index: number, project: AdditionalProject) => void;
+  deleteAdditionalProject: (index: number) => void;
+  resetProjects: () => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -93,18 +118,6 @@ const DEFAULT_MEDIUM_SETTINGS: MediumSettings = {
   profileUrl: ""
 };
 
-const loadArray = <T,>(key: string): T[] => {
-  if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem(key);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mediumSettings, setMediumSettings] = useState<MediumSettings>(DEFAULT_MEDIUM_SETTINGS);
@@ -113,142 +126,118 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [heroData, setHeroData] = useState<HeroData>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [experience, setExperience] = useState<Experience[]>(() => {
-    const stored = loadArray<Experience>("admin_experience");
-    if (stored.length > 0) {
-      console.log("📌 Experience loaded from localStorage:", stored);
-      return stored;
-    }
-    // Seed with default experience from static data
-    const seeded = staticExperience.map((exp: any, idx) => ({
-      company: exp.company,
-      position: exp.role,
-      startDate: exp.duration?.split(" – ")?.[0] || "",
-      endDate: exp.duration?.split(" – ")?.[1] === "Present" ? undefined : exp.duration?.split(" – ")?.[1],
-      current: exp.duration?.includes("Present") || false,
-      achievements: exp.achievements || [],
-      description: exp.achievements?.[0] || "",
-    }));
-    console.log("🌱 Experience seeded from staticExperience:", seeded);
-    return seeded;
-  });
-  const [education, setEducation] = useState<Education[]>(() => {
-    const stored = loadArray<Education>("admin_education");
-    if (stored.length > 0) {
-      console.log("📌 Education loaded from localStorage:", stored);
-      return stored;
-    }
-    // Seed with default education from static data
-    const seeded = [{
-      institution: staticEducation.institution,
-      degree: staticEducation.degree,
-      field: staticEducation.degree,
-      startDate: staticEducation.duration?.split(" – ")?.[0] || "2022",
-      endDate: staticEducation.duration?.split(" – ")?.[1] || "2026",
-      grade: staticEducation.cgpa,
-      coursework: staticEducation.coursework || [],
-    }];
-    console.log("🌱 Education seeded from staticEducation:", seeded);
-    return seeded;
-  });
+  const [experience, setExperience] = useState<Experience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [additionalProjects, setAdditionalProjects] = useState<AdditionalProject[]>([]);
 
   // Always persist to backend (Redis or files as fallback)
   const persistToBackend = async (key: string, data: unknown) => {
     try {
-      await fetch("/api/admin/data", {
+      const response = await fetch("/api/admin/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, data })
       });
-    } catch {}
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to persist ${key}: ${response.status} ${errorText}`);
+      } else {
+      }
+    } catch (error) {
+      throw error; // Re-throw so callers know it failed
+    }
   };
 
-  const updateExperience = (exp: Experience[]) => {
+  const updateExperience = async (exp: Experience[]) => {
     const safe = Array.isArray(exp) ? exp : [];
     setExperience(safe);
     localStorage.setItem('admin_experience', JSON.stringify(safe));
-    persistToBackend("experience", safe);
+    try {
+      await persistToBackend("experience", safe);
+      return true;
+    } catch (error) {
+      return false;
+    }
   };
 
-  const updateEducation = (edu: Education[]) => {
+  const updateEducation = async (edu: Education[]) => {
     const safe = Array.isArray(edu) ? edu : [];
     setEducation(safe);
     localStorage.setItem('admin_education', JSON.stringify(safe));
-    persistToBackend("education", safe);
+    try {
+      await persistToBackend("education", safe);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const addProject = (project: Project) => {
+    if (!isAuthenticated) return;
+    const next = [...projects, project];
+    setProjects(next);
+    try { localStorage.setItem('admin_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("projects", next);
+  };
+
+  const updateProject = (slug: string, project: Project) => {
+    if (!isAuthenticated) return;
+    const next = projects.map((p) => (p.slug === slug ? project : p));
+    setProjects(next);
+    try { localStorage.setItem('admin_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("projects", next);
+  };
+
+  const deleteProject = (slug: string) => {
+    if (!isAuthenticated) return;
+    const next = projects.filter((p) => p.slug !== slug);
+    setProjects(next);
+    try { localStorage.setItem('admin_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("projects", next);
+  };
+
+  const addAdditionalProject = (project: AdditionalProject) => {
+    if (!isAuthenticated) return;
+    const next = [...additionalProjects, project];
+    setAdditionalProjects(next);
+    try { localStorage.setItem('admin_additional_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("additionalProjects", next);
+  };
+
+  const updateAdditionalProject = (index: number, project: AdditionalProject) => {
+    if (!isAuthenticated) return;
+    const next = [...additionalProjects];
+    next[index] = project;
+    setAdditionalProjects(next);
+    try { localStorage.setItem('admin_additional_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("additionalProjects", next);
+  };
+
+  const deleteAdditionalProject = (index: number) => {
+    if (!isAuthenticated) return;
+    const next = additionalProjects.filter((_, i) => i !== index);
+    setAdditionalProjects(next);
+    try { localStorage.setItem('admin_additional_projects', JSON.stringify(next)); } catch {}
+    persistToBackend("additionalProjects", next);
+  };
+
+  const resetProjects = () => {
+    if (!isAuthenticated) return;
+    setProjects([]);
+    setAdditionalProjects([]);
+    try {
+      localStorage.removeItem('admin_projects');
+      localStorage.removeItem('admin_additional_projects');
+    } catch {}
+    persistToBackend("projects", []);
+    persistToBackend("additionalProjects", []);
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem("medium_settings");
-    if (saved) {
-      setMediumSettings(JSON.parse(saved));
-    }
-    
-    const savedFeatured = localStorage.getItem("featured_posts");
-    if (savedFeatured) {
-      setFeaturedPosts(JSON.parse(savedFeatured));
-    }
-
-    const savedCerts = localStorage.getItem("admin_certs");
-    if (savedCerts) {
-      try {
-        const parsed = JSON.parse(savedCerts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setCertifications(parsed);
-        } else {
-          setCertifications(staticCerts);
-          localStorage.setItem("admin_certs", JSON.stringify(staticCerts));
-        }
-      } catch {
-        setCertifications(staticCerts);
-        localStorage.setItem("admin_certs", JSON.stringify(staticCerts));
-      }
-    } else {
-      setCertifications(staticCerts);
-      localStorage.setItem("admin_certs", JSON.stringify(staticCerts));
-    }
-
-    const savedSkills = localStorage.getItem("admin_skills");
-    if (savedSkills) {
-      try {
-        setSkills(JSON.parse(savedSkills));
-      } catch {}
-    }
-
-    const savedHero = localStorage.getItem("admin_hero");
-    if (savedHero) {
-      try {
-        setHeroData(JSON.parse(savedHero));
-      } catch {}
-    } else {
-      // Seed initial hero data from portfolio-data
-      const initialHero: HeroData = {
-        bio: personalInfo.bio,
-        tagline: personalInfo.tagline,
-      };
-      setHeroData(initialHero);
-      localStorage.setItem("admin_hero", JSON.stringify(initialHero));
-    }
-
-    const savedSocial = localStorage.getItem("admin_social");
-    if (savedSocial) {
-      try {
-        setSocialLinks(JSON.parse(savedSocial));
-      } catch {}
-    } else {
-      // Seed initial social links from portfolio-data
-      const initialSocial: SocialLink[] = [
-        { label: "GitHub", url: personalInfo.github, icon: "github" },
-        { label: "LinkedIn", url: personalInfo.linkedin, icon: "linkedin" },
-      ];
-      if (personalInfo.twitter) {
-        initialSocial.push({ label: "Twitter", url: personalInfo.twitter, icon: "twitter" });
-      }
-      setSocialLinks(initialSocial);
-      localStorage.setItem("admin_social", JSON.stringify(initialSocial));
-    }
-
-    // Try loading from backend (Redis first, then files)
-    const loadFromBackend = async () => {
+    // Try loading from backend (Redis first), then fallback to localStorage
+    const loadData = async () => {
       try {
         const keys = [
           "mediumSettings",
@@ -259,41 +248,79 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           "socialLinks",
           "experience",
           "education",
+          "projects",
+          "additionalProjects",
         ] as const;
+        
+        let hasAnyLocalStorageData = false;
+        
         for (const key of keys) {
           try {
+            // Try Redis first
             const res = await fetch(`/api/admin/data?key=${key}`, { cache: "no-store" });
-            if (!res.ok) continue;
-            const { data } = await res.json();
-            if (data == null) {
-              console.log(`⏭️  Skipping ${key} - no data from API (Redis likely empty)`);
-              continue;
-            }
-            
-            // Only override experience/education if they contain actual data (non-empty array)
-            if ((key === "education" || key === "experience") && Array.isArray(data) && data.length === 0) {
-              console.log(`⏭️  Skipping empty ${key} array from backend`);
-              continue;
-            }
-            
-            console.log(`📡 Loading ${key} from backend:`, data);
-            switch (key) {
-              case "mediumSettings": setMediumSettings(data); break;
-              case "featuredPosts": Array.isArray(data) && setFeaturedPosts(data); break;
-              case "certifications": Array.isArray(data) && setCertifications(data); break;
-              case "skills": Array.isArray(data) && setSkills(data); break;
-              case "heroData": setHeroData(data); break;
-              case "socialLinks": Array.isArray(data) && setSocialLinks(data); break;
-              case "experience": Array.isArray(data) && setExperience(data); break;
-              case "education": Array.isArray(data) && setEducation(data); break;
+            if (res.ok) {
+              const { data } = await res.json();
+              if (data != null && data !== undefined) {
+                // We found data in Redis (including empty arrays)
+                switch (key) {
+                  case "mediumSettings": setMediumSettings(data); break;
+                  case "featuredPosts": Array.isArray(data) && setFeaturedPosts(data); break;
+                  case "certifications": Array.isArray(data) && setCertifications(data); break;
+                  case "skills": Array.isArray(data) && setSkills(data); break;
+                  case "heroData": setHeroData(data); break;
+                  case "socialLinks": Array.isArray(data) && setSocialLinks(data); break;
+                  case "experience": Array.isArray(data) && setExperience(data); break;
+                  case "education": Array.isArray(data) && setEducation(data); break;
+                  case "projects": Array.isArray(data) && setProjects(data); break;
+                  case "additionalProjects": Array.isArray(data) && setAdditionalProjects(data); break;
+                }
+                continue; // Skip localStorage fallback for this key
+              }
             }
           } catch (error) {
-            console.log(`⚠️  Error loading ${key}:`, error);
+          }
+          
+          // Fallback to localStorage if Redis failed or returned null
+          try {
+            const localStorageKey = key === "mediumSettings" ? "medium_settings" :
+                                   key === "featuredPosts" ? "featured_posts" :
+                                   key === "certifications" ? "admin_certs" :
+                                   key === "skills" ? "admin_skills" :
+                                   key === "heroData" ? "admin_hero" :
+                                   key === "socialLinks" ? "admin_social" :
+                                   key === "experience" ? "admin_experience" :
+                                   key === "education" ? "admin_education" :
+                                   key === "projects" ? "admin_projects" :
+                                   "admin_additional_projects";
+            
+            const localData = localStorage.getItem(localStorageKey);
+            if (localData) {
+              const parsed = JSON.parse(localData);
+              if (parsed != null && parsed !== undefined) {
+                switch (key) {
+                  case "mediumSettings": setMediumSettings(parsed); break;
+                  case "featuredPosts": Array.isArray(parsed) && setFeaturedPosts(parsed); break;
+                  case "certifications": Array.isArray(parsed) && setCertifications(parsed); break;
+                  case "skills": Array.isArray(parsed) && setSkills(parsed); break;
+                  case "heroData": setHeroData(parsed); break;
+                  case "socialLinks": Array.isArray(parsed) && setSocialLinks(parsed); break;
+                  case "experience": Array.isArray(parsed) && setExperience(parsed); break;
+                  case "education": Array.isArray(parsed) && setEducation(parsed); break;
+                  case "projects": Array.isArray(parsed) && setProjects(parsed); break;
+                  case "additionalProjects": Array.isArray(parsed) && setAdditionalProjects(parsed); break;
+                }
+              }
+            }
+          } catch (error) {
           }
         }
-      } catch {}
+        
+        // Don't clear localStorage - let it serve as fallback when Redis fails
+        // The loading logic prefers Redis when available, falls back to localStorage
+      } catch (error) {
+      }
     };
-    loadFromBackend();
+    loadData();
 
     const initAuth = async () => {
       try {
@@ -356,28 +383,24 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [socialLinks]);
 
-  // Persist experience to localStorage whenever it changes (including initial seeding)
+  // Persist experience to localStorage whenever it changes
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && experience.length > 0) {
+      if (typeof window !== 'undefined') {
         localStorage.setItem('admin_experience', JSON.stringify(experience));
-        // Also persist to backend to prevent loadFromBackend from overwriting
-        persistToBackend("experience", experience);
       }
-    } catch {}
+    } catch (error) {
+    }
   }, [experience]);
 
-  // Persist education to localStorage whenever it changes (including initial seeding)
+  // Persist education to localStorage whenever it changes
   useEffect(() => {
-    console.log("📝 Education state changed, persisting:", education);
     try {
-      if (typeof window !== 'undefined' && education.length > 0) {
-        console.log("💾 Saving education to localStorage and backend");
+      if (typeof window !== 'undefined') {
         localStorage.setItem('admin_education', JSON.stringify(education));
-        // Also persist to backend to prevent loadFromBackend from overwriting
-        persistToBackend("education", education);
       }
-    } catch {}
+    } catch (error) {
+    }
   }, [education]);
 
   const login = async (password: string): Promise<boolean> => {
@@ -410,6 +433,38 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try { await fetch("/api/admin/logout", { method: "POST" }); } catch {}
     setIsAuthenticated(false);
+  };
+
+  const clearAllLocalStorage = () => {
+    const keys = [
+      'medium_settings',
+      'featured_posts',
+      'admin_certs',
+      'admin_skills',
+      'admin_hero',
+      'admin_social',
+      'admin_experience',
+      'admin_education',
+      'admin_projects',
+      'admin_additional_projects'
+    ];
+    keys.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+      }
+    });
+    // Reset state to empty
+    setMediumSettings({ username: "", profileUrl: "" });
+    setFeaturedPosts([]);
+    setCertifications([]);
+    setSkills([]);
+    setHeroData({});
+    setSocialLinks([]);
+    setExperience([]);
+    setEducation([]);
+    setProjects([]);
+    setAdditionalProjects([]);
   };
 
   const updateMediumSettings = (settings: MediumSettings) => {
@@ -483,6 +538,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       isAuthenticated, 
       login, 
       logout, 
+      clearAllLocalStorage,
       mediumSettings, 
       updateMediumSettings,
       featuredPosts,
@@ -501,6 +557,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       updateExperience,
       education,
       updateEducation,
+      projects,
+      additionalProjects,
+      addProject,
+      updateProject,
+      deleteProject,
+      addAdditionalProject,
+      updateAdditionalProject,
+      deleteAdditionalProject,
+      resetProjects,
     }}>
       {children}
     </AdminContext.Provider>

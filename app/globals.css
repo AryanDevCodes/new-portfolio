@@ -1,3 +1,5 @@
+/* Fonts (imports must come first) */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Plus+Jakarta+Sans:wght@300..800&family=JetBrains+Mono:wght@400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -5,22 +7,27 @@
 
 @layer base {
   :root {
+    /* Font system ("Satoshi-like" body + Space Grotesk headings) */
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, 'Noto Sans', sans-serif;
+    --font-display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, 'Noto Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
     --background: 30 25% 97%;
     --foreground: 25 20% 12%;
 
-    --card: 35 30% 99%;
+    --card: 35 30% 96%;
     --card-foreground: 25 20% 12%;
 
-    --popover: 35 30% 99%;
+    --popover: 35 30% 96%;
     --popover-foreground: 25 20% 12%;
 
     --primary: 25 85% 50%;
     --primary-foreground: 35 30% 99%;
 
-    --secondary: 30 20% 93%;
+    --secondary: 30 20% 90%;
     --secondary-foreground: 25 20% 20%;
 
-    --muted: 30 15% 93%;
+    --muted: 30 15% 90%;
     /* Darken muted-foreground in light mode for better contrast */
     --muted-foreground: 25 18% 32%;
 
@@ -30,8 +37,8 @@
     --destructive: 0 72% 55%;
     --destructive-foreground: 35 30% 99%;
 
-    --border: 30 18% 88%;
-    --input: 30 18% 88%;
+    --border: 30 18% 86%;
+    --input: 30 18% 86%;
     --ring: 25 85% 50%;
 
     --radius: 0.75rem;
@@ -69,6 +76,31 @@
     --sidebar-accent-foreground: 25 20% 10%;
     --sidebar-border: 30 18% 88%;
     --sidebar-ring: 25 85% 50%;
+  }
+
+  /* Utility classes for consistent component styling */
+  .card-bg {
+    @apply bg-card/50 border border-border/70;
+  }
+
+  .card-bg-hover {
+    @apply hover:bg-card/60 hover:border-border/80 transition-colors;
+  }
+
+  .secondary-bg {
+    @apply bg-secondary/40 border border-border/60;
+  }
+
+  .badge-bg {
+    @apply bg-secondary/50 border border-border/50;
+  }
+
+  .glass {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20;
+  }
+
+  .glass-dark {
+    @apply dark:bg-white/5 dark:backdrop-blur-xl dark:border dark:border-white/10;
   }
 
   .dark {
@@ -142,7 +174,8 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    /* @apply bg-background */
+    @apply text-foreground antialiased;
     font-family: var(--font-sans), sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -545,4 +578,16 @@
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+@font-face {
+  font-family: 'Brotherland Signature';
+  src: url('/brotherland-signature-font/BrotherlandsignatureBold-rg7jA.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.signature-font {
+  font-family: 'Brotherland Signature', cursive;
 }

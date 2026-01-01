@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteAdminData } from "@/lib/admin-storage";
 
 const ALL_KEYS = [
+  "personalInfo",
   "mediumSettings",
   "featuredPosts",
   "certifications",
@@ -9,36 +10,20 @@ const ALL_KEYS = [
   "heroData",
   "socialLinks",
   "experience",
-  "education"
+  "education",
+  "projects",
+  "additionalProjects",
+  "additionalData",
 ] as const;
 
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
-    const deleteAll = searchParams.get("all") === "true";
-
-    if (deleteAll) {
-      // Delete all data keys
-      await Promise.all(
-        ALL_KEYS.map((k) => deleteAdminData(k as any))
-      );
-
-      console.log("✓ Deleted all admin data from Redis");
-
-      return NextResponse.json({
-        success: true,
-        message: "Successfully deleted all data from Redis",
-        details: {
-          deleted: ALL_KEYS.length + " keys",
-          keys: ALL_KEYS.join(", "),
-        },
-      });
-    }
 
     if (!key) {
       return NextResponse.json(
-        { success: false, error: "Missing 'key' or 'all' parameter" },
+        { success: false, error: "Missing 'key' parameter" },
         { status: 400 }
       );
     }
@@ -53,8 +38,6 @@ export async function DELETE(request: Request) {
 
     // Delete single key
     await deleteAdminData(key as any);
-
-    console.log(`✓ Deleted ${key} from Redis`);
 
     return NextResponse.json({
       success: true,

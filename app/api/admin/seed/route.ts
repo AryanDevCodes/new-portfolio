@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { setAdminData } from "@/lib/admin-storage";
 import { personalInfo, education, experience, stats, aboutSections, homeSections, navLinks, footerData, contactPage, projectsPage, ctaSection, siteMetadata } from "@/data/portfolio-data";
 import { skillCategories, certifications } from "@/data/skills";
-import { projects } from "@/data/projects";
+import { projects, additionalProjects } from "@/data/projects";
+import { timeline } from "@/data/timeline";
 import type { Skill, Certification, HeroData, SocialLink, Experience, Education } from "@/contexts/AdminContext";
 
 export async function POST() {
@@ -28,6 +29,9 @@ export async function POST() {
     const heroData: HeroData = {
       bio: personalInfo.bio,
       tagline: personalInfo.tagline,
+      role: personalInfo.heroSubtitle || personalInfo.title,
+      description: personalInfo.heroDescription,
+      location: personalInfo.location,
     };
 
     // 4. Social Links
@@ -73,8 +77,6 @@ export async function POST() {
 
     // 9. Store additional data that doesn't fit admin interface
     const additionalData = {
-      personalInfo,
-      story: personalInfo.story,
       stats,
       aboutSections,
       homeSections,
@@ -84,23 +86,24 @@ export async function POST() {
       projectsPage,
       ctaSection,
       siteMetadata,
-      projects,
     };
 
     // Save all data to Redis
     await Promise.all([
+      setAdminData("personalInfo" as any, personalInfo),
       setAdminData("skills", adminSkills),
       setAdminData("certifications", adminCertifications),
       setAdminData("heroData", heroData),
       setAdminData("socialLinks", socialLinks),
       setAdminData("experience", adminExperience),
       setAdminData("education", adminEducation),
+      setAdminData("projects" as any, projects),
+      setAdminData("additionalProjects" as any, additionalProjects),
       setAdminData("mediumSettings", mediumSettings),
       setAdminData("featuredPosts", featuredPosts),
       setAdminData("additionalData" as any, additionalData),
+      setAdminData("timeline", timeline),
     ]);
-
-    console.log("✓ Seeded all data to Redis successfully");
 
     return NextResponse.json({
       success: true,
@@ -111,10 +114,14 @@ export async function POST() {
         socialLinks: socialLinks.length + " links",
         experience: adminExperience.length + " entries",
         education: adminEducation.length + " entries",
+        personalInfo: "✓",
+        projects: projects.length + " items",
+        additionalProjects: additionalProjects.length + " items",
         heroData: "✓",
         mediumSettings: "✓",
         featuredPosts: "✓",
-        additionalData: "✓ (personalInfo, story, stats, pages, projects)",
+        additionalData: "✓ (story, stats, pages, nav/footer, metadata)",
+        timeline: timeline.length + " sections",
       },
     });
   } catch (error) {

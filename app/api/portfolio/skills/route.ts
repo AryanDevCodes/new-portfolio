@@ -1,28 +1,19 @@
 import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 import { getAdminData } from "@/lib/admin-storage";
-import { skillCategories } from "@/data/skills";
 
 export async function GET() {
   try {
-    // Try to get from Redis first
+    // Get skills from Redis
     const redisSkills = await getAdminData("skills");
     if (redisSkills) {
       return NextResponse.json(redisSkills);
     }
 
-    // Fallback to static data
-    const adminSkills = skillCategories.map((cat) => ({
-      category: cat.category,
-      items: cat.skills,
-    }));
-    return NextResponse.json(adminSkills);
+    // Return empty array if not found in Redis
+    return NextResponse.json([]);
   } catch (error) {
-    console.error("Error fetching skills:", error);
-    // Fallback to static data on error
-    const adminSkills = skillCategories.map((cat) => ({
-      category: cat.category,
-      items: cat.skills,
-    }));
-    return NextResponse.json(adminSkills);
+    console.error("Error fetching skills from Redis:", error);
+    return NextResponse.json({ error: "Failed to fetch skills" }, { status: 500 });
   }
 }

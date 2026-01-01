@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Explore my portfolio of backend engineering projects built with Java, Spring Boot, and modern cloud technologies.",
 };
 
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export default function ProjectsPage() {
   return <Projects />;
 }

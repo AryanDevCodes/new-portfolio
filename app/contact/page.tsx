@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Contact Aryan Raj for backend engineering, system architecture, or collaboration opportunities.",
 };
 
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export default function ContactPage() {
   return <Contact />;
 }

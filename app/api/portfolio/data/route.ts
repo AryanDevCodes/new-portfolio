@@ -1,61 +1,41 @@
 import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 import { getAdminData } from "@/lib/admin-storage";
-import {
-  stats,
-  contactPage,
-  projectsPage,
-  homeSections,
-  aboutSections,
-  navLinks,
-  footerData,
-  ctaSection,
-  siteMetadata,
-} from "@/data/portfolio-data";
 
 export async function GET() {
   try {
-    // Try to get from Redis first
+    // Get all portfolio data from Redis
     const additionalData = await getAdminData("additionalData") as any;
 
     if (additionalData) {
       return NextResponse.json({
-        stats: additionalData.stats || stats,
-        contactPage: additionalData.contactPage || contactPage,
-        projectsPage: additionalData.projectsPage || projectsPage,
-        homeSections: additionalData.homeSections || homeSections,
-        aboutSections: additionalData.aboutSections || aboutSections,
-        navLinks: additionalData.navLinks || navLinks,
-        footerData: additionalData.footerData || footerData,
-        ctaSection: additionalData.ctaSection || ctaSection,
-        siteMetadata: additionalData.siteMetadata || siteMetadata,
+        stats: additionalData.stats || {},
+        contactPage: additionalData.contactPage || {},
+        projectsPage: additionalData.projectsPage || {},
+        homeSections: additionalData.homeSections || {},
+        aboutSections: additionalData.aboutSections || {},
+        navLinks: additionalData.navLinks || [],
+        footerData: additionalData.footerData || {},
+        ctaSection: additionalData.ctaSection || {},
+        siteMetadata: additionalData.siteMetadata || {},
       });
     }
 
-    // Fallback to static data
+    // Return empty objects if not found in Redis
     return NextResponse.json({
-      stats,
-      contactPage,
-      projectsPage,
-      homeSections,
-      aboutSections,
-      navLinks,
-      footerData,
-      ctaSection,
-      siteMetadata,
+      stats: {},
+      contactPage: {},
+      projectsPage: {},
+      homeSections: {},
+      aboutSections: {},
+      navLinks: [],
+      footerData: {},
+      ctaSection: {},
+      siteMetadata: {},
     });
   } catch (error) {
-    console.error("Error fetching portfolio data:", error);
-    // Fallback to static data on error
-    return NextResponse.json({
-      stats,
-      contactPage,
-      projectsPage,
-      homeSections,
-      aboutSections,
-      navLinks,
-      footerData,
-      ctaSection,
-      siteMetadata,
-    });
+    console.error("Error fetching portfolio data from Redis:", error);
+    return NextResponse.json({ error: "Failed to fetch portfolio data" }, { status: 500 });
   }
 }
+

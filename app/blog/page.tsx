@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Read articles about backend engineering, system architecture, and software development.",
 };
 
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export default function BlogPage() {
   return <Blog />;
 }

@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const SESSION_COOKIE = "admin_session";
 const CSRF_TOKEN_COOKIE = "csrf_token";
@@ -21,10 +21,7 @@ export function logAuditEvent(action: string, ip: string, result: string, userId
   if (AUDIT_LOG.length > 1000) {
     AUDIT_LOG.shift();
   }
-  // In production, persist to database
-  if (process.env.NODE_ENV === 'production') {
-    console.log(`[AUDIT] ${action} - ${result} (${ip})`);
-  }
+
 }
 
 export function getAuditLog() {

@@ -28,7 +28,7 @@ export function DataSeeder() {
   const [result, setResult] = useState<SeedResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<string | "all" | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSeed = async () => {
     if (loading) return;
@@ -165,7 +165,7 @@ export function DataSeeder() {
     }
   };
 
-  const confirmDelete = (target: string | "all") => {
+  const confirmDelete = (target: string) => {
     setDeleteTarget(target);
     setShowDeleteDialog(true);
   };
@@ -178,9 +178,7 @@ export function DataSeeder() {
     setShowDeleteDialog(false);
 
     try {
-      const url = deleteTarget === "all" 
-        ? "/api/admin/data/delete?all=true"
-        : `/api/admin/data/delete?key=${deleteTarget}`;
+      const url = `/api/admin/data/delete?key=${deleteTarget}`;
       
       const response = await fetch(url, { method: "DELETE" });
       const data = await response.json();
@@ -189,7 +187,7 @@ export function DataSeeder() {
       if (data.success) {
         toast({
           title: "Deleted Successfully",
-          description: deleteTarget === "all" ? "All data removed from Redis" : `${deleteTarget} removed from Redis`,
+          description: `${deleteTarget} removed from Redis`,
           variant: "destructive",
         });
       } else {
@@ -234,12 +232,28 @@ export function DataSeeder() {
               <strong>What this does:</strong>
             </p>
             <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-2">
-              <li>Reads portfolio-data.ts and skills.ts</li>
+              <li>Reads portfolio-data.ts, skills.ts, and timeline.ts</li>
               <li>Transforms to admin panel format</li>
-              <li>Uploads all 8 data sections to Redis</li>
+              <li>Uploads all 9 data sections to Redis (including timeline/story)</li>
             </ul>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {[
+                "skills", "certifications", "heroData", "socialLinks", "experience", "education", "mediumSettings", "featuredPosts", "timeline"
+              ].map((key) => (
+                <Button
+                  key={key}
+                  onClick={() => confirmDelete(key)}
+                  disabled={loading}
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                >
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  {key}
+                </Button>
+              ))}
+            </div>
           </div>
-
           <Button
             onClick={handleSeed}
             disabled={loading}
@@ -365,28 +379,6 @@ export function DataSeeder() {
               ))}
             </div>
           </div>
-
-          <div className="pt-4 border-t">
-            <Button
-              onClick={() => confirmDelete("all")}
-              disabled={loading}
-              variant="destructive"
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete All Data
-                </>
-              )}
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
@@ -420,20 +412,9 @@ export function DataSeeder() {
               Confirm Deletion
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget === "all" ? (
-                <>
-                  Are you sure you want to delete <strong>ALL</strong> data from Redis?
-                  This will remove all skills, certifications, experience, education, hero data, social links, and settings.
-                  <br /><br />
-                  <strong className="text-destructive">This action cannot be undone!</strong>
-                </>
-              ) : (
-                <>
-                  Are you sure you want to delete <strong>{deleteTarget}</strong> from Redis?
-                  <br /><br />
-                  This action cannot be undone.
-                </>
-              )}
+              Are you sure you want to delete <strong>{deleteTarget}</strong> from Redis?
+              <br /><br />
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

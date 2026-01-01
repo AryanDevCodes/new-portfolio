@@ -5,6 +5,7 @@
 import { createClient } from "redis";
 
 type DataKey =
+  | "personalInfo"
   | "mediumSettings"
   | "featuredPosts"
   | "certifications"
@@ -13,7 +14,10 @@ type DataKey =
   | "socialLinks"
   | "experience"
   | "education"
-  | "additionalData";
+  | "projects"
+  | "additionalProjects"
+  | "additionalData"
+  | "timeline";
 
 let redisClient: ReturnType<typeof createClient> | null = null;
 let redisReady = false;
@@ -29,7 +33,7 @@ async function initRedis() {
     await redisClient.connect();
     redisReady = true;
   } catch (e) {
-    console.error("Failed to connect to Redis:", e);
+    console.error("❌ Failed to connect to Redis:", e);
     redisClient = null;
     redisReady = true;
   }
@@ -42,9 +46,10 @@ export async function getAdminData(key: DataKey): Promise<unknown> {
   }
   try {
     const value = await redisClient.get(`admin:${key}`);
-    return value ? JSON.parse(value) : null;
+    const parsed = value ? JSON.parse(value) : null;
+    return parsed;
   } catch (e) {
-    console.error(`Failed to get Redis data for ${key}:`, e);
+    console.error(`❌ Failed to get Redis data for ${key}:`, e);
     return null;
   }
 }
@@ -52,12 +57,18 @@ export async function getAdminData(key: DataKey): Promise<unknown> {
 export async function setAdminData(key: DataKey, data: unknown): Promise<void> {
   await initRedis();
   if (!redisClient) {
-    return; // No Redis available; silently skip
+    throw new Error('Redis client not available');
   }
   try {
-    await redisClient.set(`admin:${key}`, JSON.stringify(data));
+    const jsonString = JSON.stringify(data);
+    await redisClient.set(`admin:${key}`, jsonString);
+    
+    // Immediately verify the data was stored
+    const verifyValue = await redisClient.get(`admin:${key}`);
+    void verifyValue;
   } catch (e) {
-    console.error(`Failed to set Redis data for ${key}:`, e);
+    console.error(`❌ Failed to set Redis data for ${key}:`, e);
+    throw e; // Re-throw so the API can handle it
   }
 }
 

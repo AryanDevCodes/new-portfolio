@@ -11,6 +11,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+// Pre-render all project detail pages for fast navigation
+export function generateStaticParams() {
+  return projects.map((p) => ({ slug: p.slug }));
+}
+
+export const dynamic = "force-static";
+export const revalidate = 300;
+
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   return <ProjectDetail slug={slug} />;

@@ -1,159 +1,217 @@
- "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Terminal } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [personalInfo, setPersonalInfo] = useState<any>(null);
-  const [hydrated, setHydrated] = useState(false);
-  const pathname = usePathname();
+/* ---------------- Types ---------------- */
+type NavLink = {
+  label: string;
+  path: string;
+};
 
+type PersonalInfo = {
+  resumeUrl?: string;
+};
+
+/* ---------------- Component ---------------- */
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(null);
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+
+  const pathname = usePathname();
+  const brandText = "< Aryan Raj />";
+  const resumeUrl = personalInfo?.resumeUrl || "/resume.pdf";
+
+  /* ---------------- Hydration ---------------- */
   useEffect(() => {
     setHydrated(true);
   }, []);
 
+  /* ---------------- Fetch Data ---------------- */
   useEffect(() => {
-    const fetchPersonalInfo = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("/api/portfolio/personal-info");
-        if (res.ok) {
-          const data = await res.json();
-          setPersonalInfo(data);
+        const [personalRes, dataRes] = await Promise.all([
+          fetch("/api/portfolio/personal-info"),
+          fetch("/api/portfolio/data"),
+        ]);
+
+        if (personalRes.ok) setPersonalInfo(await personalRes.json());
+        if (dataRes.ok) {
+          const data = await dataRes.json();
+          setNavLinks(data.navLinks ?? []);
         }
-      } catch (error) {
-        console.error("Error fetching personal info:", error);
+      } catch (err) {
+        console.error("Navbar fetch error:", err);
       }
     };
 
-    fetchPersonalInfo();
+    fetchData();
   }, []);
 
-  const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/about", label: "About" },
-    { path: "/projects", label: "Projects" },
-    { path: "/blog", label: "Blog" },
-    { path: "/contact", label: "Contact" },
-  ];
+  /* ---------------- Scroll Effect ---------------- */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* ---------------- Close Mobile on Route Change ---------------- */
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   if (!hydrated) return null;
 
   return (
     <motion.header
-      initial={{ y: -100 }}
+      initial={{ y: -80 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 glass"
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/70 dark:bg-black/40 backdrop-blur-xl border-b border-border/50 shadow-sm"
+          : "bg-transparent"
+      }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Terminal className="w-5 h-5 text-primary" />
-            </div>
-            <span className="font-mono font-bold text-lg text-foreground">
-              {(personalInfo?.name || "Portfolio").split(" ")[0]}
-              <span className="text-primary">.</span>
-            </span>
+        <div className="flex h-16 items-center justify-between">
+
+          {/* ---------------- LOGO ---------------- */}
+          <Link href="/" className="group">
+            <motion.span
+              whileHover={{
+                scale: 1.05,
+                textShadow: "0 0 18px rgba(99,102,241,0.6)",
+              }}
+              className="signature-font block select-none"
+              style={{
+                fontSize: "2.4rem",
+                fontWeight: 2400,
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
+                WebkitTextStroke: "1.2px transparent",
+              }}
+            >
+              <span className="text-neutral-900 dark:text-neutral-100 drop-shadow-sm">
+                {brandText}
+              </span>
+            </motion.span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* ---------------- DESKTOP NAV ---------------- */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path}
-                className="relative px-4 py-2 font-mono text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {pathname === link.path && (
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.path ||
+                pathname.startsWith(`${link.path}/`);
+              const isHovered = hoveredPath === link.path;
+
+              return (
+                <div
+                  key={link.path}
+                  className="relative"
+                  onMouseEnter={() => setHoveredPath(link.path)}
+                  onMouseLeave={() => setHoveredPath(null)}
+                >
+                  <Link
+                    href={link.path}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+
                   <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute inset-0 bg-primary/10 rounded-lg"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-primary via-primary to-accent"
+                    initial={false}
+                    animate={{ scaleX: isActive || isHovered ? 1 : 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    style={{ originX: 0 }}
                   />
-                )}
-                <span className="relative z-10">
-                  <span className="text-primary">//</span> {link.label}
-                </span>
-              </Link>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Right Section */}
+          {/* ---------------- RIGHT ACTIONS ---------------- */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
+
             <Button
-              variant="terminal"
+              variant="outline"
               size="sm"
-              className="hidden sm:flex"
+              className="hidden sm:flex gap-2"
               asChild
             >
-              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+              <a href={resumeUrl} target="_blank" rel="noopener noreferrer">
+                <Download className="h-4 w-4" />
                 Resume
               </a>
             </Button>
 
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
               className="md:hidden"
               onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isOpen ? <X /> : <Menu />}
             </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden border-t border-border/50 overflow-hidden"
             >
-              <div className="py-4 space-y-2">
+              <div className="py-4 space-y-2 backdrop-blur-md">
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.path}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
                   >
                     <Link
                       href={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className={`block px-4 py-3 rounded-lg font-mono text-sm transition-colors ${
+                      className={`block px-4 py-3 rounded-lg text-sm font-medium ${
                         pathname === link.path
                           ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-secondary"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <span className="text-primary">//</span> {link.label}
+                      {link.label}
                     </Link>
                   </motion.div>
                 ))}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: navLinks.length * 0.1 }}
-                >
-                  <Button variant="terminal" className="w-full mt-2" asChild>
-                    <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+
+                <div className="px-4 pt-2">
+                  <Button className="w-full gap-2" asChild>
+                    <a href={resumeUrl} target="_blank">
+                      <Download className="h-4 w-4" />
                       Download Resume
                     </a>
                   </Button>
-                </motion.div>
+                </div>
               </div>
             </motion.div>
           )}

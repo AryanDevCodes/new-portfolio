@@ -6,7 +6,20 @@ export async function POST(request: Request) {
     const data = await request.json();
 
     // Validate that the uploaded data has the expected structure
-    const validKeys = ["skills", "certifications", "heroData", "socialLinks", "experience", "education", "mediumSettings", "featuredPosts"];
+    const validKeys = [
+      "personalInfo",
+      "skills",
+      "certifications",
+      "heroData",
+      "socialLinks",
+      "experience",
+      "education",
+      "projects",
+      "additionalProjects",
+      "mediumSettings",
+      "featuredPosts",
+      "additionalData",
+    ];
     const uploadedKeys = Object.keys(data);
     
     if (uploadedKeys.length === 0) {
@@ -36,8 +49,6 @@ export async function POST(request: Request) {
 
     const successful = results.filter(r => r.status === "fulfilled").length;
     const failed = results.filter(r => r.status === "rejected").length;
-
-    console.log(`✓ Uploaded ${successful} data keys from JSON file`);
 
     // Build details object
     const details: Record<string, string> = {};

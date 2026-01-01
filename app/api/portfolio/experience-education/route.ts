@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 import { getAdminData } from "@/lib/admin-storage";
-import { education, experience } from "@/data/portfolio-data";
 
 export async function GET() {
   try {
@@ -10,15 +10,11 @@ export async function GET() {
     ]);
 
     return NextResponse.json({
-      experience: redisExperience || experience,
-      education: redisEducation || education,
+      experience: redisExperience || [],
+      education: redisEducation || [],
     });
   } catch (error) {
-    console.error("Error fetching experience/education:", error);
-    // Fallback to static data on error
-    return NextResponse.json({
-      experience,
-      education,
-    });
+    console.error("Error fetching experience/education from Redis:", error);
+    return NextResponse.json({ error: "Failed to fetch experience/education" }, { status: 500 });
   }
 }

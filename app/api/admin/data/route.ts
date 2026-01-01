@@ -5,6 +5,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 type DataKey =
+  | "personalInfo"
   | "mediumSettings"
   | "featuredPosts"
   | "certifications"
@@ -12,9 +13,12 @@ type DataKey =
   | "heroData"
   | "socialLinks"
   | "experience"
-  | "education";
+  | "education"
+  | "projects"
+  | "additionalProjects";
 
 const keyToFile: Record<DataKey, string> = {
+  personalInfo: path.join(process.cwd(), "src", "data", "admin", "personal-info.json"),
   mediumSettings: path.join(process.cwd(), "src", "data", "admin", "medium-settings.json"),
   featuredPosts: path.join(process.cwd(), "src", "data", "admin", "featured-posts.json"),
   certifications: path.join(process.cwd(), "src", "data", "admin", "certifications.json"),
@@ -23,6 +27,8 @@ const keyToFile: Record<DataKey, string> = {
   socialLinks: path.join(process.cwd(), "src", "data", "admin", "social-links.json"),
   experience: path.join(process.cwd(), "src", "data", "admin", "experience.json"),
   education: path.join(process.cwd(), "src", "data", "admin", "education.json"),
+  projects: path.join(process.cwd(), "src", "data", "admin", "projects.json"),
+  additionalProjects: path.join(process.cwd(), "src", "data", "admin", "additional-projects.json"),
 };
 
 async function ensureDir(filePath: string) {

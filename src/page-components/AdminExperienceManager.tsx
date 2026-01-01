@@ -16,6 +16,8 @@ export function ExperienceManager() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<Partial<Experience>>({});
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [persistOk, setPersistOk] = useState<boolean | null>(null);
 
   const resetForm = () => {
     setFormData({});
@@ -29,7 +31,7 @@ export function ExperienceManager() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.company || !formData.position || !formData.startDate) {
       toast({ title: "Required fields missing", variant: "destructive" });
       return;
@@ -41,16 +43,21 @@ export function ExperienceManager() {
     } else {
       newExperience.push({ ...formData, id: Date.now().toString() } as Experience);
     }
-    
-    updateExperience(newExperience);
-    toast({ title: "Success", description: `Experience ${editingIndex !== null ? 'updated' : 'added'}` });
+    setSaving(true);
+    const ok = await updateExperience(newExperience);
+    setPersistOk(ok);
+    setSaving(false);
+    toast({ title: ok ? "Saved to Redis" : "Saved locally", description: `Experience ${editingIndex !== null ? 'updated' : 'added'}` , variant: ok ? undefined : "destructive"});
     resetForm();
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
     const newExperience = safeExperience.filter((_, i) => i !== index);
-    updateExperience(newExperience);
-    toast({ title: "Deleted", description: "Experience entry removed" });
+    setSaving(true);
+    const ok = await updateExperience(newExperience);
+    setPersistOk(ok);
+    setSaving(false);
+    toast({ title: ok ? "Deleted" : "Delete failed (local only)", description: "Experience entry removed", variant: ok ? undefined : "destructive" });
   };
 
   return (
@@ -108,8 +115,16 @@ export function ExperienceManager() {
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={resetForm}><RotateCcw className="w-4 h-4 mr-2" />Cancel</Button>
-                <Button onClick={handleSave} variant="terminal"><Save className="w-4 h-4 mr-2" />Save</Button>
+                <Button onClick={handleSave} variant="terminal" disabled={saving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving…' : 'Save'}
+                </Button>
               </div>
+              {persistOk !== null && (
+                <p className={`text-xs ${persistOk ? 'text-green-600' : 'text-destructive'} mt-2`}>
+                  {persistOk ? 'Saved to server' : 'Server save failed; data cached locally'}
+                </p>
+              )}
             </motion.div>
           )}
         </CardContent>
