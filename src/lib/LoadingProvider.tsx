@@ -23,7 +23,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     // ignore initial mount
     if (!pathname) return;
     startLoading();
-    const t = setTimeout(() => stopLoading(), 2000);
+    const t = setTimeout(() => stopLoading(), 3000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
