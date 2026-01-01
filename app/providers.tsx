@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { useState, type ReactNode } from "react";
+import { LoadingProvider } from "@/lib/LoadingProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -20,7 +21,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              {children}
+              <LoadingProvider>{children}</LoadingProvider>
             </TooltipProvider>
           </AdminProvider>
         </QueryClientProvider>

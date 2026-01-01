@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Calendar, Clock, BookOpen, ArrowRight } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
+import { useLoading } from "@/lib/LoadingProvider";
 
 interface BlogPost {
   title: string;
@@ -39,6 +39,7 @@ export default function Blog() {
   const [error, setError] = useState<string | null>(null);
   const { mediumSettings, featuredPosts } = useAdmin();
   const mediumUsername = mediumSettings.username;
+  const { startLoading, stopLoading } = useLoading();
 
   // UI state: category filter and pagination
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export default function Blog() {
   }, [mediumUsername]);
 
   const fetchPosts = async () => {
+    startLoading();
     setLoading(true);
     setError(null);
     try {
@@ -120,6 +122,7 @@ export default function Blog() {
       setError("Error loading blog posts");
     } finally {
       setLoading(false);
+      stopLoading();
     }
   };
 
