@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -41,6 +40,36 @@ export default function Blog() {
   const { mediumSettings, featuredPosts } = useAdmin();
   const mediumUsername = mediumSettings.username;
 
+  // UI state: category filter and pagination
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [itemsToShow, setItemsToShow] = useState(6);
+
+  // Utility: strip HTML from RSS descriptions to produce clean excerpts
+  const stripHtml = (html: string) => {
+    if (!html) return "";
+    try {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      return div.textContent || div.innerText || "";
+    } catch (e) {
+      return html.replace(/<[^>]+>/g, "");
+    }
+  };
+
+  // Utility: extract first image src from HTML content
+  const extractImageFromHtml = (html: string) => {
+    if (!html) return "";
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const img = doc.querySelector("img");
+      return img?.getAttribute("src") || "";
+    } catch (e) {
+      const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      return m && m[1] ? m[1] : "";
+    }
+  };
+
   useEffect(() => {
     if (mediumUsername) {
       fetchPosts();
@@ -64,7 +93,11 @@ export default function Blog() {
           link: item.link,
           pubDate: item.pubDate,
           author: item.author,
-          thumbnail: item.thumbnail || "",
+          thumbnail:
+            item.thumbnail ||
+            extractImageFromHtml(item.description || item.content || "") ||
+            (item.enclosure && (item.enclosure.link || item.enclosure.url)) ||
+            "",
           description: item.description,
           categories: item.categories || [],
         }));
@@ -90,8 +123,22 @@ export default function Blog() {
     }
   };
 
-  const featuredPosts_ = useMemo(() => posts.filter((p) => p.isFeatured), [posts]);
-  const regularPosts = useMemo(() => posts.filter((p) => !p.isFeatured), [posts]);
+  // Apply category filtering before splitting featured/regular
+  const filteredPosts = useMemo(() => {
+    if (!selectedCategory) return posts;
+    return posts.filter((p) => p.categories && p.categories.includes(selectedCategory));
+  }, [posts, selectedCategory]);
+
+  const featuredPosts_ = useMemo(() => filteredPosts.filter((p) => p.isFeatured), [filteredPosts]);
+  const regularPostsAll = useMemo(() => filteredPosts.filter((p) => !p.isFeatured), [filteredPosts]);
+  const regularPosts = useMemo(() => regularPostsAll.slice(0, itemsToShow), [regularPostsAll, itemsToShow]);
+
+  // Collect unique categories for the filter UI
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    posts.forEach((p) => (p.categories || []).forEach((c) => set.add(c)));
+    return Array.from(set).sort();
+  }, [posts]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -99,7 +146,8 @@ export default function Blog() {
   };
 
   const estimateReadTime = (description: string) => {
-    const words = description.split(" ").length;
+    const text = stripHtml(description || "");
+    const words = text.split(/\s+/).filter(Boolean).length;
     return Math.ceil(words / 200);
   };
 
@@ -162,6 +210,32 @@ export default function Blog() {
             </motion.div>
           ) : (
             <>
+              {/* Category filter */}
+              {categories.length > 0 && (
+                <div className="mb-8 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setItemsToShow(6);
+                    }}
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${!selectedCategory ? "bg-primary text-white" : "bg-card/40"}`}
+                  >
+                    All
+                  </button>
+                  {categories.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => {
+                        setSelectedCategory(c);
+                        setItemsToShow(6);
+                      }}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${selectedCategory === c ? "bg-primary text-white" : "bg-card/40"}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
               {/* Featured Posts */}
               {featuredPosts_.length > 0 && (
                 <div className="mb-16">
@@ -190,7 +264,7 @@ export default function Blog() {
                         className="group rounded-2xl dark:border dark:border-border/50 bg-card/40 backdrop-blur-md overflow-hidden dark:hover:border-primary/30 hover:bg-card/60 transition-all duration-300"
                         whileHover={{ y: -4 }}
                       >
-                        {post.thumbnail && (
+                        {post.thumbnail ? (
                           <div className="relative h-[200px] w-full overflow-hidden bg-secondary/50">
                             <img
                               src={post.thumbnail}
@@ -199,12 +273,16 @@ export default function Blog() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                           </div>
+                        ) : (
+                          <div className="relative h-[200px] w-full overflow-hidden bg-gradient-to-r from-primary/5 to-accent/5 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-muted-foreground">{post.title?.slice(0, 2).toUpperCase()}</span>
+                          </div>
                         )}
                         <div className="p-6 space-y-3">
                           <h3 className="text-lg font-bold font-display group-hover:text-primary transition-colors line-clamp-2">
                             {post.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{post.description}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{stripHtml(post.description)}</p>
                           <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono pt-2">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
@@ -236,27 +314,41 @@ export default function Blog() {
                     <h2 className="text-2xl sm:text-3xl font-bold font-display">Recent Posts</h2>
                   </motion.div>
 
-                  <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {regularPosts.map((post, i) => (
                       <motion.a
                         key={post.link}
                         href={post.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: i * 0.05, duration: 0.5 }}
-                        className="group block rounded-2xl dark:border dark:border-border/50 bg-card/40 backdrop-blur-md p-5 sm:p-6 dark:hover:border-primary/30 hover:bg-card/60 transition-all duration-300"
-                        whileHover={{ x: 4 }}
+                        className="group block rounded-2xl dark:border dark:border-border/50 bg-card/40 backdrop-blur-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+                        whileHover={{ y: -4 }}
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-2">
-                            <h3 className="text-lg font-bold font-display group-hover:text-primary transition-colors line-clamp-2">
-                              {post.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-1">{post.description}</p>
-                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono pt-2">
+                        <div className="relative h-44 w-full overflow-hidden bg-secondary/50">
+                          {post.thumbnail ? (
+                            <img
+                              src={post.thumbnail}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-primary/5 to-accent/5">
+                              <span className="text-lg font-semibold text-muted-foreground">{post.title?.slice(0, 2).toUpperCase()}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4 sm:p-5 space-y-2">
+                          <h3 className="text-base font-bold font-display group-hover:text-primary transition-colors line-clamp-2">
+                            {post.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{stripHtml(post.description)}</p>
+                          <div className="flex items-center justify-between pt-3 text-xs text-muted-foreground font-mono">
+                            <div className="flex items-center gap-3">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(post.pubDate)}
@@ -266,12 +358,19 @@ export default function Blog() {
                                 {estimateReadTime(post.description)} min read
                               </span>
                             </div>
+                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                           </div>
-                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
                         </div>
                       </motion.a>
                     ))}
                   </div>
+                  {regularPostsAll.length > itemsToShow && (
+                    <div className="mt-6 text-center">
+                      <Button onClick={() => setItemsToShow((s) => s + 6)} size="lg">
+                        Load more
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </>
