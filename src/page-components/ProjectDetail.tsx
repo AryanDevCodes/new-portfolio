@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Github, ExternalLink, ChevronRight, Code2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { fetchCache } from "@/lib/fetchCache";
 
 const container = {
   hidden: { opacity: 0 },
@@ -44,12 +45,20 @@ export default function ProjectDetail({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const cached = fetchCache.get<{ projects: ProjectItem[] }>("/api/portfolio/projects");
+    if (cached) {
+      setProjects(cached.projects || []);
+      setLoading(false);
+    }
     const fetchProjects = async () => {
       try {
-        const res = await fetch("/api/portfolio/projects");
-        if (res.ok) {
-          const data = await res.json();
-          setProjects(data.projects || []);
+        if (!cached) {
+          const res = await fetch("/api/portfolio/projects");
+          if (res.ok) {
+            const data = await res.json();
+            fetchCache.set("/api/portfolio/projects", data);
+            setProjects(data.projects || []);
+          }
         }
       } catch (error) {
         console.error("Error fetching projects:", error);

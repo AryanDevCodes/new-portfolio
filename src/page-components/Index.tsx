@@ -1,5 +1,12 @@
 "use client";
 
+declare global {
+  interface Window {
+    __PORTFOLIO_CACHE__?: Record<string, any>;
+    __GLOBAL_PREFETCH_DONE__?: boolean;
+  }
+}
+
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -19,6 +26,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroIllustration } from "@/components/HeroIllustration";
 import { memo, useEffect, useMemo, useState } from "react";
+import { fetchCache } from "@/lib/fetchCache";
 import { useAdmin } from "@/contexts/AdminContext";
 
 const container = {
@@ -133,42 +141,56 @@ export default function Index() {
   const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
 
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [personalRes, projectsRes, skillsRes, dataRes] = await Promise.all([
-          fetch("/api/portfolio/personal-info"),
-          fetch("/api/portfolio/projects"),
-          fetch("/api/portfolio/skills"),
-          fetch("/api/portfolio/data"),
-        ]);
-
-        if (personalRes.ok) {
-          const data = await personalRes.json();
-          setPersonalInfo(data);
-        }
-        if (projectsRes.ok) {
-          const data = await projectsRes.json();
-          setProjects(data.projects || []);
-        }
-        if (skillsRes.ok) {
-          const data = await skillsRes.json();
-          setSkillCategories(data);
-        }
-
-        if (dataRes.ok) {
-          const data = await dataRes.json();
-          setHomeSections(data.homeSections || {});
-        }
-      } catch (error) {
-        console.error("Error fetching portfolio data:", error);
-      }
+    // Wait for global data to be ready from splash screen
+    const handleDataReady = () => {
+      // Load from cache immediately
+      const cp = fetchCache.get<any>("/api/portfolio/personal-info");
+      const cproj = fetchCache.get<{ projects: any[] }>("/api/portfolio/projects");
+      const cskills = fetchCache.get<any[]>("/api/portfolio/skills");
+      const cdata = fetchCache.get<any>("/api/portfolio/data");
+      
+      if (cp) setPersonalInfo(cp);
+      if (cproj) setProjects(cproj.projects || []);
+      if (cskills) setSkillCategories(cskills);
+      if (cdata) setHomeSections(cdata.homeSections || {});
+      
+      setHydrated(true);
     };
 
-    fetchData();
+    // Check if splash was skipped (already shown in session)
+    const splashSkipped = typeof window !== 'undefined' && sessionStorage.getItem('splashShown') === 'true' && !window.__GLOBAL_PREFETCH_DONE__;
+    
+    if (splashSkipped) {
+      // Splash was skipped, fetch data now if not in cache
+      const cacheReady = window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0;
+      if (cacheReady) {
+        handleDataReady();
+      } else {
+        // No cache, show page immediately and let individual fetches happen
+        setHydrated(true);
+      }
+      return;
+    }
+
+    // Check if data is already ready (splash completed before component mount)
+    const cacheReady = window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0);
+    
+    if (cacheReady) {
+      handleDataReady();
+    } else {
+      // Wait for the event
+      window.addEventListener('globalDataReady', handleDataReady, { once: true });
+      
+      // Fallback: force render after 3 seconds (faster since non-blocking)
+      const fallbackTimeout = setTimeout(() => {
+        handleDataReady();
+      }, 3000);
+      
+      return () => {
+        window.removeEventListener('globalDataReady', handleDataReady);
+        clearTimeout(fallbackTimeout);
+      };
+    }
   }, []);
 
   const featuredProjects = useMemo(() => projects.filter((p) => p.featured).slice(0, 3), [projects]);
@@ -203,18 +225,7 @@ export default function Index() {
           <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center pt-10">
             <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
               <motion.div variants={item} className="space-y-6">
-                {(heroData as any)?.role && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 dark:border dark:border-primary/20">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                    </span>
-                    <p className="text-muted-foreground font-mono text-xs uppercase tracking-wider">{(heroData as any).role}</p>
-                  </div>
-                )}
-                
                 <TypewriterHeadline />
-                
                 <div className="max-w-xl rounded-2xl dark:border dark:border-border/60 bg-secondary/30 p-6 backdrop-blur mx-auto">
                   <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                     {heroData?.bio}

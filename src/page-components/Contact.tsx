@@ -1,6 +1,14 @@
 "use client";
 
+declare global {
+  interface Window {
+    __PORTFOLIO_CACHE__?: Record<string, any>;
+    __GLOBAL_PREFETCH_DONE__?: boolean;
+  }
+}
+
 import { useState, useEffect } from "react";
+import { fetchCache } from "@/lib/fetchCache";
 import { motion } from "framer-motion";
 import { Mail, Github, Linkedin, Send, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +36,7 @@ export default function Contact() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [contactPage, setContactPage] = useState<any>(null);
   const [personalInfo, setPersonalInfo] = useState<any>(null);
+  const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -76,27 +85,35 @@ export default function Contact() {
       ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [dataRes, personalRes] = await Promise.all([
-          fetch("/api/portfolio/data"),
-          fetch("/api/portfolio/personal-info"),
-        ]);
-
-        if (dataRes.ok) {
-          const data = await dataRes.json();
-          setContactPage(data.contactPage);
-        }
-        if (personalRes.ok) {
-          const data = await personalRes.json();
-          setPersonalInfo(data);
-        }
-      } catch (error) {
-        console.error("Error fetching contact data:", error);
-      }
+    // Wait for global data to be ready from splash screen
+    const handleDataReady = () => {
+      // Load from cache immediately
+      const cdata = fetchCache.get<any>("/api/portfolio/data");
+      const cp = fetchCache.get<any>("/api/portfolio/personal-info");
+      
+      if (cdata) setContactPage(cdata.contactPage);
+      if (cp) setPersonalInfo(cp);
+      
+      setHydrated(true);
     };
 
-    fetchData();
+    // Check if data is already ready (splash completed before component mount)
+    if (window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0)) {
+      handleDataReady();
+    } else {
+      // Wait for the event
+      window.addEventListener('globalDataReady', handleDataReady, { once: true });
+      
+      // Fallback: force render after 6 seconds
+      const fallbackTimeout = setTimeout(() => {
+        handleDataReady();
+      }, 6000);
+      
+      return () => {
+        window.removeEventListener('globalDataReady', handleDataReady);
+        clearTimeout(fallbackTimeout);
+      };
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -142,6 +159,8 @@ export default function Contact() {
       });
     }
   };
+
+  if (!hydrated) return null;
 
   return (
     <>

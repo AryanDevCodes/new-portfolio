@@ -1,10 +1,18 @@
 "use client";
 
+declare global {
+  interface Window {
+    __PORTFOLIO_CACHE__?: Record<string, any>;
+    __GLOBAL_PREFETCH_DONE__?: boolean;
+  }
+}
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Github, ExternalLink, ChevronRight, Star, Code2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { fetchCache } from "@/lib/fetchCache";
 
 const container = {
   hidden: { opacity: 0 },
@@ -28,32 +36,42 @@ export default function Projects() {
   const safeProjectsPage = projectsPage ?? {};
 
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [projectsRes, dataRes] = await Promise.all([
-          fetch("/api/portfolio/projects"),
-          fetch("/api/portfolio/data"),
-        ]);
-
-        if (projectsRes.ok) {
-          const data = await projectsRes.json();
-          setProjects(data.projects || []);
-          setAdditionalProjects(data.additionalProjects || []);
-        }
-        if (dataRes.ok) {
-          const data = await dataRes.json();
-          setProjectsPage(data.projectsPage);
-        }
-      } catch (error) {
-        console.error("Error fetching projects:", error);
+    // Wait for global data to be ready from splash screen
+    const handleDataReady = () => {
+      // Load from cache immediately
+      const cachedProjects = fetchCache.get<{ projects: any[]; additionalProjects: any[] }>(
+        "/api/portfolio/projects"
+      );
+      const cachedData = fetchCache.get<any>("/api/portfolio/data");
+      
+      if (cachedProjects) {
+        setProjects(cachedProjects.projects || []);
+        setAdditionalProjects(cachedProjects.additionalProjects || []);
       }
+      if (cachedData) {
+        setProjectsPage(cachedData.projectsPage);
+      }
+      
+      setHydrated(true);
     };
 
-    fetchData();
+    // Check if data is already ready (splash completed before component mount)
+    if (window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0)) {
+      handleDataReady();
+    } else {
+      // Wait for the event
+      window.addEventListener('globalDataReady', handleDataReady, { once: true });
+      
+      // Fallback: force render after 6 seconds
+      const fallbackTimeout = setTimeout(() => {
+        handleDataReady();
+      }, 6000);
+      
+      return () => {
+        window.removeEventListener('globalDataReady', handleDataReady);
+        clearTimeout(fallbackTimeout);
+      };
+    }
   }, []);
 
   const featuredProjects = projects.filter((p) => p.featured);

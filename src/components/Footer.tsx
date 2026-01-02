@@ -280,19 +280,8 @@ export function Footer() {
     ? adminSocial
     : derivedSocialLinks;
 
-  if (!hydrated || loading) {
-    return (
-      <footer className="border-t border-border bg-gradient-to-b from-card/70">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-center">
-            <div className="animate-pulse flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-primary/30" />
-              <span className="text-muted-foreground text-xs">Loading...</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-    );
+  if (!hydrated) {
+    return null;
   }
 
   return (

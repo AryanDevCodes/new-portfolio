@@ -251,17 +251,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
           "projects",
           "additionalProjects",
         ] as const;
-        
-        let hasAnyLocalStorageData = false;
-        
-        for (const key of keys) {
+
+        await Promise.all(keys.map(async (key) => {
           try {
-            // Try Redis first
+            // Try Redis first (parallelized for faster hydration)
             const res = await fetch(`/api/admin/data?key=${key}`, { cache: "no-store" });
             if (res.ok) {
               const { data } = await res.json();
               if (data != null && data !== undefined) {
-                // We found data in Redis (including empty arrays)
                 switch (key) {
                   case "mediumSettings": setMediumSettings(data); break;
                   case "featuredPosts": Array.isArray(data) && setFeaturedPosts(data); break;
@@ -274,13 +271,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                   case "projects": Array.isArray(data) && setProjects(data); break;
                   case "additionalProjects": Array.isArray(data) && setAdditionalProjects(data); break;
                 }
-                continue; // Skip localStorage fallback for this key
+                return;
               }
             }
           } catch (error) {
           }
-          
-          // Fallback to localStorage if Redis failed or returned null
+
           try {
             const localStorageKey = key === "mediumSettings" ? "medium_settings" :
                                    key === "featuredPosts" ? "featured_posts" :
@@ -292,7 +288,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                                    key === "education" ? "admin_education" :
                                    key === "projects" ? "admin_projects" :
                                    "admin_additional_projects";
-            
+
             const localData = localStorage.getItem(localStorageKey);
             if (localData) {
               const parsed = JSON.parse(localData);
@@ -313,8 +309,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
             }
           } catch (error) {
           }
-        }
-        
+        }));
+
         // Don't clear localStorage - let it serve as fallback when Redis fails
         // The loading logic prefers Redis when available, falls back to localStorage
       } catch (error) {

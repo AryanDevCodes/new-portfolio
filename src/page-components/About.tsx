@@ -1,9 +1,17 @@
 "use client";
 
+declare global {
+  interface Window {
+    __PORTFOLIO_CACHE__?: Record<string, any>;
+    __GLOBAL_PREFETCH_DONE__?: boolean;
+  }
+}
+
 import { motion } from "framer-motion";
 import { MapPin, Award, GraduationCap, Briefcase, Code2, Zap, CheckCircle2, ArrowRight, Sparkles, User, Target, BookOpen } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
 import { useEffect, useMemo, useState } from "react";
+import { fetchCache } from "@/lib/fetchCache";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -33,42 +41,42 @@ export default function About() {
   const [timeline, setTimeline] = useState<any[]>([]);
 
   useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [personalRes, expEduRes, skillsRes, timelineRes] = await Promise.all([
-          fetch("/api/portfolio/personal-info"),
-          fetch("/api/portfolio/experience-education"),
-          fetch("/api/portfolio/skills"),
-          fetch("/api/portfolio/timeline"),
-        ]);
-
-        if (personalRes.ok) {
-          const data = await personalRes.json();
-          setPersonalInfo(data);
-        }
-        if (expEduRes.ok) {
-          const data = await expEduRes.json();
-          setExperience(data.experience || []);
-          setEducation(data.education);
-        }
-        if (skillsRes.ok) {
-          const data = await skillsRes.json();
-          setSkillCategories(data);
-        }
-        if (timelineRes.ok) {
-          const data = await timelineRes.json();
-          setTimeline(Array.isArray(data) ? data : []);
-        }
-      } catch (error) {
-        console.error("Error fetching about data:", error);
+    // Wait for global data to be ready from splash screen
+    const handleDataReady = () => {
+      // Load from cache immediately
+      const cp = fetchCache.get<any>("/api/portfolio/personal-info");
+      const ce = fetchCache.get<any>("/api/portfolio/experience-education");
+      const cs = fetchCache.get<any[]>("/api/portfolio/skills");
+      const ct = fetchCache.get<any[]>("/api/portfolio/timeline");
+      
+      if (cp) setPersonalInfo(cp);
+      if (ce) {
+        setExperience((ce as any).experience || []);
+        setEducation((ce as any).education);
       }
+      if (cs) setSkillCategories(cs);
+      if (ct) setTimeline(Array.isArray(ct) ? ct : []);
+      
+      setHydrated(true);
     };
 
-    fetchData();
+    // Check if data is already ready (splash completed before component mount)
+    if (window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0)) {
+      handleDataReady();
+    } else {
+      // Wait for the event
+      window.addEventListener('globalDataReady', handleDataReady, { once: true });
+      
+      // Fallback: force render after 6 seconds
+      const fallbackTimeout = setTimeout(() => {
+        handleDataReady();
+      }, 6000);
+      
+      return () => {
+        window.removeEventListener('globalDataReady', handleDataReady);
+        clearTimeout(fallbackTimeout);
+      };
+    }
   }, []);
 
   const safePersonal = personalInfo ?? {};

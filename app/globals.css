@@ -136,6 +136,61 @@
     @apply dark:bg-white/5 dark:backdrop-blur-xl dark:border dark:border-white/10;
   }
 
+  /* Professional page reveal animations */
+  @keyframes page-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(15px) scale(0.98);
+      filter: blur(5px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0px);
+    }
+  }
+
+  @keyframes stagger-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Ensure smooth transition - no flash */
+  body:not(.page-revealed) > #root-content {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /* Smooth page entry with faster animations */
+  body.page-revealed > #root-content {
+    animation: page-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 1;
+  }
+
+  body.page-revealed main > * {
+    animation: stagger-reveal 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  body.page-revealed main > *:nth-child(1) { animation-delay: 30ms; }
+  body.page-revealed main > *:nth-child(2) { animation-delay: 60ms; }
+  body.page-revealed main > *:nth-child(3) { animation-delay: 90ms; }
+  body.page-revealed main > *:nth-child(4) { animation-delay: 120ms; }
+  body.page-revealed main > *:nth-child(5) { animation-delay: 150ms; }
+
+  body.page-revealed header {
+    animation: page-reveal 600ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both;
+  }
+
+  body.page-revealed footer {
+    animation: page-reveal 800ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
+  }
+
   .dark {
     --background: 222 25% 8%;
     --foreground: 210 20% 95%;
