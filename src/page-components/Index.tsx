@@ -2,8 +2,11 @@
 
 declare global {
   interface Window {
-    __PORTFOLIO_CACHE__?: Record<string, any>;
-    __GLOBAL_PREFETCH_DONE__?: boolean;
+    __APP__?: {
+      splash: { initialized: boolean };
+      cache: Record<string, any>;
+      flags: { prefetchDone: boolean };
+    };
   }
 }
 
@@ -149,31 +152,25 @@ export default function Index() {
       const cskills = fetchCache.get<any[]>("/api/portfolio/skills");
       const cdata = fetchCache.get<any>("/api/portfolio/data");
       
-      if (cp) setPersonalInfo(cp);
-      if (cproj) setProjects(cproj.projects || []);
-      if (cskills) setSkillCategories(cskills);
-      if (cdata) setHomeSections(cdata.homeSections || {});
+      if (cp) {
+        setPersonalInfo(cp);
+      }
+      if (cproj) {
+        const projectsArray = cproj.projects || [];
+        setProjects(projectsArray);
+      }
+      if (cskills) {
+        setSkillCategories(cskills);
+      }
+      if (cdata) {
+        setHomeSections(cdata.homeSections || {});
+      }
       
       setHydrated(true);
     };
 
-    // Check if splash was skipped (already shown in session)
-    const splashSkipped = typeof window !== 'undefined' && sessionStorage.getItem('splashShown') === 'true' && !window.__GLOBAL_PREFETCH_DONE__;
-    
-    if (splashSkipped) {
-      // Splash was skipped, fetch data now if not in cache
-      const cacheReady = window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0;
-      if (cacheReady) {
-        handleDataReady();
-      } else {
-        // No cache, show page immediately and let individual fetches happen
-        setHydrated(true);
-      }
-      return;
-    }
-
     // Check if data is already ready (splash completed before component mount)
-    const cacheReady = window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0);
+    const cacheReady = window.__APP__?.flags.prefetchDone || (window.__APP__?.cache && Object.keys(window.__APP__.cache).length > 0);
     
     if (cacheReady) {
       handleDataReady();
@@ -181,10 +178,10 @@ export default function Index() {
       // Wait for the event
       window.addEventListener('globalDataReady', handleDataReady, { once: true });
       
-      // Fallback: force render after 3 seconds (faster since non-blocking)
+      // Fallback: force render after 9 seconds (after splash completes)
       const fallbackTimeout = setTimeout(() => {
         handleDataReady();
-      }, 3000);
+      }, 9000);
       
       return () => {
         window.removeEventListener('globalDataReady', handleDataReady);
@@ -193,7 +190,10 @@ export default function Index() {
     }
   }, []);
 
-  const featuredProjects = useMemo(() => projects.filter((p) => p.featured).slice(0, 3), [projects]);
+  const featuredProjects = useMemo(() => {
+    const filtered = projects.filter((p) => p.featured).slice(0, 3);
+    return filtered;
+  }, [projects]);
 
   // Remove rotating bio effect
 

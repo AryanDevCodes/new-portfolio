@@ -1,9 +1,12 @@
-// Simple client-side fetch cache and global portfolio prefetch
+// Simple client-side fetch cache with unified namespace
 
 declare global {
   interface Window {
-    __PORTFOLIO_CACHE__?: Record<string, any>;
-    __GLOBAL_PREFETCH_DONE__?: boolean;
+    __APP__?: {
+      splash: { initialized: boolean };
+      cache: Record<string, any>;
+      flags: { prefetchDone: boolean };
+    };
   }
 }
 
@@ -24,8 +27,8 @@ class FetchCache {
       return this.store.get(url);
     }
     // Fallback to global cache if available
-    if (typeof window !== 'undefined' && window.__PORTFOLIO_CACHE__?.[url]) {
-      const data = window.__PORTFOLIO_CACHE__[url];
+    if (typeof window !== 'undefined' && window.__APP__?.cache?.[url]) {
+      const data = window.__APP__.cache[url];
       this.store.set(url, data);
       return data;
     }
@@ -36,10 +39,14 @@ class FetchCache {
     this.store.set(url, data);
     // Also update global cache
     if (typeof window !== 'undefined') {
-      if (!window.__PORTFOLIO_CACHE__) {
-        window.__PORTFOLIO_CACHE__ = {};
+      if (!window.__APP__) {
+        window.__APP__ = {
+          splash: { initialized: false },
+          cache: {},
+          flags: { prefetchDone: false }
+        };
       }
-      window.__PORTFOLIO_CACHE__[url] = data;
+      window.__APP__.cache[url] = data;
     }
   }
 
@@ -54,23 +61,21 @@ class FetchCache {
   }
 }
 
-// Initialize global cache on window
-if (typeof window !== 'undefined') {
-  (window as any).__PORTFOLIO_CACHE__ = (window as any).__PORTFOLIO_CACHE__ || {};
+// Initialize global namespace on window
+if (typeof window !== 'undefined' && !(window as any).__APP__) {
+  (window as any).__APP__ = {
+    splash: { initialized: false },
+    cache: {},
+    flags: { prefetchDone: false }
+  };
 }
 
 export const fetchCache = new FetchCache();
 
 export async function prefetchPortfolioData(): Promise<void> {
   // Check if splash screen already loaded data
-  if (typeof window !== 'undefined' && (window as any).__GLOBAL_PREFETCH_DONE__) {
-    // Sync from window cache to fetchCache
-    const windowCache = (window as any).__PORTFOLIO_CACHE__;
-    if (windowCache) {
-      Object.keys(windowCache).forEach(key => {
-        fetchCache.set(key, windowCache[key]);
-      });
-    }
+  if (typeof window !== 'undefined' && window.__APP__?.flags.prefetchDone) {
+    // Data already loaded by splash screen
     return;
   }
 
@@ -99,7 +104,9 @@ export async function prefetchPortfolioData(): Promise<void> {
 
   // Signal readiness
   try {
-    (window as any).__GLOBAL_PREFETCH_DONE__ = true;
+    if (window.__APP__) {
+      window.__APP__.flags.prefetchDone = true;
+    }
     document.dispatchEvent(new Event("globalDataReady"));
   } catch {}
 }

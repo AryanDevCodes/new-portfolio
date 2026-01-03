@@ -590,6 +590,8 @@
     @apply px-4 py-2 text-sm font-mono rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors;
   }
 
+  
+
   /* Scanlines effect */
   .scanlines::before {
     content: '';
@@ -698,4 +700,159 @@
 
 .signature-font {
   font-family: 'Brotherland Signature', cursive;
+}
+
+/*/* =========================
+   FLOATING ORBS & PARTICLES
+   ========================= */
+
+.splash-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.25;
+  animation: float-orb 25s ease-in-out infinite;
+}
+
+.orb-1 { background: hsl(var(--primary)/0.35); top: 20%; left: 15%; }
+.orb-2 { background: hsl(var(--accent)/0.25); bottom: 15%; right: 20%; animation-delay: -8s; }
+.orb-3 { background: hsl(var(--terminal-purple)/0.25); top: 50%; right: 35%; animation-delay: -12s; }
+
+@keyframes float-orb {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(40px, -40px) scale(1.15); }
+  66% { transform: translate(-30px, 30px) scale(0.9); }
+}
+
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: hsl(var(--primary)/0.2);
+  animation: particle-float 12s linear infinite;
+}
+
+@keyframes particle-float {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(500px, -300px); }
+}
+
+/* =========================
+   ILLUSTRATION ANIMATION
+   ========================= */
+
+ .illustration {
+  position: relative;
+  transform: translateY(0) scale(1);
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+  filter: drop-shadow(0 0 30px hsl(var(--primary))) drop-shadow(0 0 60px hsl(var(--accent)));
+}
+
+/* =========================
+   TITLE & SUBTITLE
+   ========================= */
+
+.splash-title span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: char-rise 800ms cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+@keyframes char-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--accent));
+  }
+}
+
+.splash-subtitle {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: subtitle-rise 700ms cubic-bezier(0.22,1,0.36,1) 1.2s forwards;
+}
+
+@keyframes subtitle-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   SPLASH CONTAINER
+   ========================= */
+
+.splash-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(99,102,241,.08), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(16,185,129,.06), transparent 50%),
+    linear-gradient(135deg, rgba(15,23,42,.98), rgba(30,41,59,.96));
+  will-change: transform, opacity;
+}
+
+/* =========================
+   EXIT ANIMATION
+   ========================= */
+
+.splash-exit {
+  animation: splash-exit-advanced 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+@keyframes splash-exit-advanced {
+  0% { opacity: 1; transform: scale(1); clip-path: circle(100% at 50% 50%); }
+  50% { opacity: 0.6; transform: scale(1.2); clip-path: circle(120% at 50% 50%); filter: blur(10px); }
+  100% { opacity: 0; transform: scale(1.5); clip-path: circle(0% at 50% 50%); filter: blur(25px); }
+}
+
+/* Illustration floating */
+ .animate-float {
+  animation: illustration-float 6s ease-in-out infinite alternate;
+}
+
+@keyframes illustration-float {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12px) scale(1.02); }
+}
+
+/* Title and subtitle animation */
+.splash-title span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: char-rise 800ms cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+@keyframes char-rise {
+  to { opacity: 1; transform: translateY(0); text-shadow: 0 0 10px hsl(var(--primary)),0 0 20px hsl(var(--accent)); }
+}
+
+.splash-subtitle {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: subtitle-rise 700ms cubic-bezier(0.22,1,0.36,1) 0.5s forwards;
+}
+
+@keyframes subtitle-rise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Splash exit */
+.splash-ready {
+  animation: splash-hide 500ms cubic-bezier(0.4,0,0.6,1) forwards;
+}
+
+@keyframes splash-hide {
+  0% { opacity: 1; transform: scale(1); filter: blur(0); }
+  100% { opacity: 0; transform: scale(1.5); filter: blur(20px); }
 }

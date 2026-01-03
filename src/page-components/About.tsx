@@ -2,8 +2,11 @@
 
 declare global {
   interface Window {
-    __PORTFOLIO_CACHE__?: Record<string, any>;
-    __GLOBAL_PREFETCH_DONE__?: boolean;
+    __APP__?: {
+      splash: { initialized: boolean };
+      cache: Record<string, any>;
+      flags: { prefetchDone: boolean };
+    };
   }
 }
 
@@ -61,7 +64,7 @@ export default function About() {
     };
 
     // Check if data is already ready (splash completed before component mount)
-    if (window.__GLOBAL_PREFETCH_DONE__ || (window.__PORTFOLIO_CACHE__ && Object.keys(window.__PORTFOLIO_CACHE__).length > 0)) {
+    if (window.__APP__?.flags.prefetchDone || (window.__APP__?.cache && Object.keys(window.__APP__.cache).length > 0)) {
       handleDataReady();
     } else {
       // Wait for the event
