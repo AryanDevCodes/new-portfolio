@@ -90,13 +90,16 @@ const TypewriterHeadline = memo(function TypewriterHeadline() {
     "solutions for scale.",
   ];
 
-  const typewriterSpeed = 32; // ms per char
-  const typewriterPause = 1000; // ms pause at end
+  const typewriterSpeed = 32; // ms per char when typing
+  const deleteSpeed = 28; // ms per char when deleting
+  const typewriterPause = 900; // ms pause at full text
+  const deletePause = 250; // ms pause before starting delete
 
   const [hydrated, setHydrated] = useState(false);
   const [displayedTypewriter, setDisplayedTypewriter] = useState("");
   const [typewriterIndex, setTypewriterIndex] = useState(0);
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
@@ -105,30 +108,71 @@ const TypewriterHeadline = memo(function TypewriterHeadline() {
   useEffect(() => {
     if (!hydrated) return;
     const currentPhrase = typewriterPhrases[phraseIndex];
-    if (typewriterIndex < currentPhrase.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedTypewriter(currentPhrase.substring(0, typewriterIndex + 1));
-        setTypewriterIndex(typewriterIndex + 1);
-      }, typewriterSpeed);
-      return () => clearTimeout(timeout);
+    const fullLength = currentPhrase.length;
+
+    // Determine current delay based on typing or deleting
+    let delay = isDeleting ? deleteSpeed : typewriterSpeed;
+
+    // When a phrase is fully typed, pause before starting to delete
+    if (!isDeleting && typewriterIndex === fullLength) {
+      delay = typewriterPause;
     }
 
-    const pauseTimeout = setTimeout(() => {
-      setTypewriterIndex(0);
-      setDisplayedTypewriter("");
-      setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
-    }, typewriterPause);
-    return () => clearTimeout(pauseTimeout);
-  }, [typewriterIndex, phraseIndex, hydrated]);
+    // When a phrase is fully deleted, short pause before typing next phrase
+    if (isDeleting && typewriterIndex === 0) {
+      delay = deletePause;
+    }
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        if (typewriterIndex < fullLength) {
+          const nextIndex = typewriterIndex + 1;
+          setDisplayedTypewriter(currentPhrase.substring(0, nextIndex));
+          setTypewriterIndex(nextIndex);
+        } else {
+          // Start deleting after pause
+          setIsDeleting(true);
+        }
+      } else {
+        if (typewriterIndex > 0) {
+          const nextIndex = typewriterIndex - 1;
+          setDisplayedTypewriter(currentPhrase.substring(0, nextIndex));
+          setTypewriterIndex(nextIndex);
+        } else {
+          // Move to next phrase and start typing again
+          setIsDeleting(false);
+          setPhraseIndex((prev) => (prev + 1) % typewriterPhrases.length);
+        }
+      }
+    }, delay);
+
+    return () => clearTimeout(timeout);
+  }, [typewriterIndex, phraseIndex, hydrated, isDeleting]);
+
+  // Define a set of color classes or inline styles to cycle through
+  const colorClasses = [
+    "bg-gradient-to-r from-primary via-primary to-accent", // original
+    "bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400",
+    "bg-gradient-to-r from-green-400 via-blue-500 to-purple-500",
+    "bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500",
+    "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500",
+  ];
+  const colorIndex = phraseIndex % colorClasses.length;
+  const currentColorClass = colorClasses[colorIndex];
 
   return (
     <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight font-display leading-tight">
       <span className="text-foreground">{typewriterPrefix}</span>
       <span className="relative inline-block">
-        <span className="relative z-10 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl">
+        <span
+          className={`relative z-10 ${currentColorClass} bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl`}
+        >
           {displayedTypewriter}
         </span>
-        <span className="inline-block w-[3px] h-[0.85em] bg-gradient-to-b from-primary to-accent ml-1.5 animate-pulse rounded-full" />
+        <span
+          className={`inline-block w-[3px] h-[0.85em] ${currentColorClass} bg-clip-text text-transparent ml-1.5 animate-pulse rounded-full`}
+          style={{ background: "inherit" }}
+        />
       </span>
     </h1>
   );
@@ -237,7 +281,7 @@ export default function Index() {
                
                 <Button variant="outline" size="lg" className="dark:border-primary/40" asChild>
                   <Link href={personalInfo.resumeUrl || "/resume.pdf"} target="_blank">
-                    <Download className="w-4 h-4 mr-2" /> Download CV
+                    <Download className="w-4 h-4 mr-2" /> Resume
                   </Link>
                 </Button>
               </motion.div>

@@ -92,7 +92,9 @@ export default function SplashScreen() {
         isExiting ? "splash-ready" : ""
       }`}
     >
-      {/* Left: Illustration centered left, name below */}
+      {/* Left: Code block */}
+      <div className="splash-code-col">{highlightCode(typed)}</div>
+      {/* Right: Illustration centered right, name below */}
       <div className="splash-illustration-col">
         <img
           src="/intro-splash.png"
@@ -103,8 +105,6 @@ export default function SplashScreen() {
         />
         <p className="splash-name signature-font" style={{ fontSize: '6rem' }}>Aryan Raj</p>
       </div>
-      {/* Right: Code block */}
-      <div className="splash-code-col">{highlightCode(typed)}</div>
     </div>
   );
 }
