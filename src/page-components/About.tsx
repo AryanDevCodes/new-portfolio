@@ -161,7 +161,10 @@ export default function About() {
                     <p className="text-sm font-medium uppercase tracking-widest opacity-70">Experience</p>
                     <div className="flex items-center gap-3">
                       <Briefcase className="w-5 h-5" />
-                      <p className="text-lg font-semibold">{displayExperience.length}+ Years</p>
+                      {/*<p className="text-lg font-semibold">{displayExperience.length}+ Years</p>*/}
+                      <p className="text-lg font-semibold">
+                        {displayExperience.length > 0 ? "Fresher"}
+                        </p>
                     </div>
                   </div>
                 </div>
