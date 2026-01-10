@@ -5,13 +5,17 @@ export const personalInfo = {
   name: "Aryan Raj",
   title: "Backend Engineer",
   tagline: "I design and build secure, scalable backend systems.",
-  bio: `Hi, I’m Aryan 👋  
-Backend engineer focused on building scalable, production-grade systems.
+  bio: `Hi, I’m Aryan — a backend engineer focused on building scalable, production-ready systems.
 
-• Java & Spring Boot  
-• RESTful APIs & real-time communication  
-• Authentication & secure system design  
-• Cloud-native architecture`,
+I specialize in designing backend services that are secure, modular, and easy to evolve,
+with a strong foundation in system design and clean architecture.
+
+-> Java & Spring Boot
+-> RESTful APIs & real-time communication
+-> Authentication, authorization & secure system design
+-> Cloud-native backend architecture
+
+I aim to build systems that are not just functional today, but resilient and extensible for the future`,
 
   location: "Bhopal, Madhya Pradesh",
   email: "rajaryan.codes@gmail.com",
