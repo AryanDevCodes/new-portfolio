@@ -9,13 +9,13 @@ export const personalInfo = {
 
 I specialize in designing backend services that are secure, modular, and easy to evolve,
 with a strong foundation in system design and clean architecture.
-
+"
 -> Java & Spring Boot
 -> RESTful APIs & real-time communication
 -> Authentication, authorization & secure system design
 -> Cloud-native backend architecture
 
-I aim to build systems that are not just functional today, but resilient and extensible for the future,
+I aim to build systems that are not just functional today, but resilient and extensible for the future.`,
 
   location: "Bhopal, Madhya Pradesh",
   email: "rajaryan.codes@gmail.com",
