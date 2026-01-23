@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
-  swcMinify: true,
+  // swcMinify removed for Next.js 16 compatibility
   async headers() {
     return [
       {
