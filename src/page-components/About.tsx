@@ -589,8 +589,6 @@ export default function About() {
     </div>
   );
 }
-<<<<<<< HEAD
-
 // Certificates Gallery Component - Professional Coverflow Style
 const CertificatesGallery = memo(function CertificatesGallery({ certificates }: { certificates: any[] }) {
   const [selectedCert, setSelectedCert] = useState<any>(null);
@@ -892,6 +890,3 @@ const CertificatesGallery = memo(function CertificatesGallery({ certificates }: 
     </>
   );
 });
-
-=======
->>>>>>> 189a1e2e875e795030d9f885f65cdaf349d2a9c8
