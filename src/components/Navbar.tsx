@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, Home, User, FolderGit2, BookOpen, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -16,6 +16,19 @@ type NavLink = {
 
 type PersonalInfo = {
   resumeUrl?: string;
+};
+
+/* ---------------- Icon Helper ---------------- */
+const getNavIcon = (path: string) => {
+  const iconMap: Record<string, any> = {
+    '/': Home,
+    '/about': User,
+    '/projects': FolderGit2,
+    '/blog': BookOpen,
+    '/contact': Mail,
+  };
+  const Icon = iconMap[path];
+  return Icon ? <Icon className="h-4 w-4" /> : null;
 };
 
 /* ---------------- Component ---------------- */
@@ -135,12 +148,13 @@ export default function Navbar() {
                   <Link
                     href={link.path}
                     aria-current={isActive ? "page" : undefined}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
                       isActive
                         ? "text-primary"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
+                    {getNavIcon(link.path)}
                     {link.label}
                   </Link>
 
@@ -202,12 +216,13 @@ export default function Navbar() {
                   >
                     <Link
                       href={link.path}
-                      className={`block px-4 py-3 rounded-lg text-sm font-medium ${
+                      className={`block px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-3 ${
                         pathname === link.path
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
+                      {getNavIcon(link.path)}
                       {link.label}
                     </Link>
                   </motion.div>

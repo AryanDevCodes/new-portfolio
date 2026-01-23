@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import "./splash.css";
 import { useSplashController } from "./useSplashController";
 
@@ -36,19 +37,6 @@ const colorMap: Record<string, string> = {
 export default function SplashScreen() {
   const { isVisible, isExiting } = useSplashController();
   const [typed, setTyped] = useState("");
-
-  // Parallax illustration
-  useEffect(() => {
-    const move = (e: MouseEvent) => {
-      const el = document.querySelector(".splash-illustration-img") as HTMLElement;
-      if (!el) return;
-      const x = (window.innerWidth / 2 - e.clientX) * 0.02;
-      const y = (window.innerHeight / 2 - e.clientY) * 0.02;
-      el.style.transform = `translateX(calc(-50% + ${x}px)) translateY(${y}px)`;
-    };
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, []);
 
   // Typing effect (character by character, all lines as one string)
   useEffect(() => {
@@ -91,20 +79,17 @@ export default function SplashScreen() {
       className={`splash-container splash-flex ${
         isExiting ? "splash-ready" : ""
       }`}
+      style={{
+        backgroundImage: 'url(/splash.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat'
+      }}
     >
-      {/* Left: Code block */}
+      {/* Left: Empty space for background image */}
+      <div className="splash-illustration-col" />
+      {/* Right: Code block */}
       <div className="splash-code-col">{highlightCode(typed)}</div>
-      {/* Right: Illustration centered right, name below */}
-      <div className="splash-illustration-col">
-        <img
-          src="/intro-splash.png"
-          alt="Illustration"
-          width={400}
-          height={400}
-          className="splash-illustration-img animate-float"
-        />
-        <p className="splash-name signature-font" style={{ fontSize: '6rem' }}>Aryan Raj</p>
-      </div>
     </div>
   );
 }

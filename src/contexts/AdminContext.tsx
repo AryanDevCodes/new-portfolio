@@ -19,6 +19,7 @@ export interface Certification {
   date?: string; // ISO or display string
   url?: string;  // credential URL
   id?: string;   // optional credential ID
+  imageUrl?: string; // certificate image for gallery display
 }
 
 export interface Skill {

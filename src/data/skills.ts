@@ -36,32 +36,40 @@ export interface StaticCertification {
   url?: string;
   id?: string;
   date?: string;
+  imageUrl?: string;
 }
 
 export const certifications: StaticCertification[] = [
   {
-    title: "AWS Academy: Cloud Foundations",
-    issuer: "AWS Academy",
-    url: "https://aws.amazon.com/training/awsacademy/",
+    title: "Core Java Certificate",
+    imageUrl: "/certificates/core-java.jpg",
   },
   {
-    title: "AWS Academy: Machine Learning Foundations",
-    issuer: "AWS Academy",
-    url: "https://aws.amazon.com/training/awsacademy/",
+    title: "Java Spring Boot Certificate",
+    imageUrl: "/certificates/SpringBoot.jpg",
   },
   {
-    title: "Core Java — PrepInsta",
-    issuer: "PrepInsta",
-    url: "https://prepinsta.com/java/",
+    title: "Spring MVC Certificate",
+    imageUrl: "/certificates/spring-mvc.jpg",
   },
   {
-    title: "Java Spring Boot — Infosys SpringBoard",
-    issuer: "Infosys SpringBoard",
-    url: "https://infyspringboard.onwingspan.com/",
+    title: "HTML Certificate",
+    imageUrl: "/certificates/html.jpg",
   },
   {
-    title: "Spring MVC — Infosys SpringBoard",
-    issuer: "Infosys SpringBoard",
-    url: "https://infyspringboard.onwingspan.com/",
+    title: "CSS Certificate",
+    imageUrl: "/certificates/css.jpg",
+  },
+  {
+    title: "JavaScript Certificate",
+    imageUrl: "/certificates/javaScript.jpg",
+  },
+  {
+    title: "SQL Certificate",
+    imageUrl: "/certificates/SQL.jpg",
+  },
+  {
+    title: "Java Internship Certificate",
+    imageUrl: "/certificates/JAVA_INTERNSHIP.jpg",
   },
 ];

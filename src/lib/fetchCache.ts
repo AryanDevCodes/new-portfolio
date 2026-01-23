@@ -19,24 +19,31 @@ export type PortfolioPrefetchKeys =
   | "/api/portfolio/experience-education";
 
 class FetchCache {
-  private store = new Map<string, any>();
+  private store = new Map<string, { data: any; timestamp: number }>();
+  private readonly TTL = 5 * 60 * 1000; // 5 minutes
 
   get<T = any>(url: string): T | undefined {
     // Check in-memory cache first
-    if (this.store.has(url)) {
-      return this.store.get(url);
+    const cached = this.store.get(url);
+    if (cached) {
+      // Check if cache is still valid
+      if (Date.now() - cached.timestamp < this.TTL) {
+        return cached.data;
+      } else {
+        this.store.delete(url); // Remove stale cache
+      }
     }
     // Fallback to global cache if available
     if (typeof window !== 'undefined' && window.__APP__?.cache?.[url]) {
       const data = window.__APP__.cache[url];
-      this.store.set(url, data);
+      this.store.set(url, { data, timestamp: Date.now() });
       return data;
     }
     return undefined;
   }
 
   set(url: string, data: any) {
-    this.store.set(url, data);
+    this.store.set(url, { data, timestamp: Date.now() });
     // Also update global cache
     if (typeof window !== 'undefined') {
       if (!window.__APP__) {
@@ -47,6 +54,13 @@ class FetchCache {
         };
       }
       window.__APP__.cache[url] = data;
+    }
+  }
+
+  clear() {
+    this.store.clear();
+    if (typeof window !== 'undefined' && window.__APP__) {
+      window.__APP__.cache = {};
     }
   }
 

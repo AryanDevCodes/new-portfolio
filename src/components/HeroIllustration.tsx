@@ -18,8 +18,6 @@ interface IconPosition {
 export function HeroIllustration() {
   const prefersReducedMotion = useReducedMotion();
 
-  // NOTE: Avoid per-frame React state updates (they cause jank in prod).
-  // We approximate the prior angularSpeed (deg/frame @ ~60fps) with a duration.
   const icons: IconPosition[] = [
     { angle: 30, orbitRadius: 90, angularSpeed: 0.8, size: 56 },   // Java
     { angle: 210, orbitRadius: 90, angularSpeed: 0.75, size: 52 }, // Spring Boot

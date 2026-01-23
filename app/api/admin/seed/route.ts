@@ -19,10 +19,9 @@ export async function POST() {
     // 2. Certifications (already compatible)
     const adminCertifications: Certification[] = certifications.map((cert) => ({
       title: cert.title,
-      issuer: cert.issuer,
-      url: cert.url,
-      id: cert.id,
       date: cert.date,
+      id: cert.id,
+      imageUrl: cert.imageUrl,
     }));
 
     // 3. Hero Data

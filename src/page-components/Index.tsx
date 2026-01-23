@@ -28,7 +28,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroIllustration } from "@/components/HeroIllustration";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState, useCallback } from "react";
 import { fetchCache } from "@/lib/fetchCache";
 import { useAdmin } from "@/contexts/AdminContext";
 
@@ -277,14 +277,14 @@ export default function Index() {
                 </div>
               </motion.div>
 
-              <motion.div variants={item} className="flex flex-wrap items-center gap-3">
+              {/* <motion.div variants={item} className="flex flex-wrap items-center gap-3">
                
                 <Button variant="outline" size="lg" className="dark:border-primary/40" asChild>
                   <Link href={personalInfo.resumeUrl || "/resume.pdf"} target="_blank">
                     <Download className="w-4 h-4 mr-2" /> Resume
                   </Link>
                 </Button>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div variants={item} className="flex flex-wrap items-center gap-4">
                 {(() => {
@@ -437,34 +437,6 @@ export default function Index() {
       </section>
       )}
 
-      {/* Blog & CTA */}
-      <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl border border-border/70 bg-card/50 p-8 lg:p-10 grid lg:grid-cols-[auto_1fr] gap-8">
-            <div className="space-y-4">
-              <p className="text-primary font-mono text-sm">// Writing</p>
-              <h3 className="text-3xl font-bold font-display">Blog & engineering notes</h3>
-              <p className="text-muted-foreground leading-relaxed">
-              Architecture decisions, scaling lessons, and reliability checklists. Featured posts are highlighted on the blog page.
-              </p>
-              <Button variant="hero" asChild className="w-fit">
-              <Link href="/blog">
-                Read the blog
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              </Button>
-            </div>
-            <div className="lg:col-span-2 p-10 rounded-3xl bg-secondary/30 border border-border/60 text-base text-muted-foreground flex flex-col justify-center min-h-[180px] max-w-2xl mx-auto lg:mx-0 shadow-lg">
-              <h4 className="font-semibold text-lg mb-4 text-foreground">How the Blog Works</h4>
-              <ul className="space-y-4 pl-0 list-disc list-inside">
-                <li><span className="font-semibold text-primary">Featured posts</span> surface first with a <span className="font-semibold text-primary">star badge</span>.</li>
-                <li><span className="font-semibold text-primary">Pulled live</span> from <span className="font-semibold text-primary">Medium via RSS </span> with admin-controlled username.</li>
-                <li><span className="font-semibold text-primary">Quick sort</span>: <span className="font-semibold text-primary">featured → newest</span>, for fast scanning.</li>
-              </ul>
-            </div>
-            </div>
-        </div>
-      </section>
 
       {/* Final CTA */}
       <section className="py-12 sm:py-16 relative overflow-hidden">

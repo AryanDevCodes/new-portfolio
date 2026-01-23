@@ -382,11 +382,11 @@ function FeaturedBlogsManager() {
 
 function CertificationsManager() {
   const { certifications, addCertification, updateCertification, removeCertification } = useAdmin();
-  const [form, setForm] = useState<Certification>({ title: "", issuer: "", date: "", url: "", id: "" });
+  const [form, setForm] = useState<Certification>({ title: "", date: "", id: "", imageUrl: "" });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const resetForm = () => {
-    setForm({ title: "", issuer: "", date: "", url: "", id: "" });
+    setForm({ title: "", date: "", id: "", imageUrl: "" });
     setEditingIndex(null);
   };
 
@@ -418,29 +418,26 @@ function CertificationsManager() {
             <Award className="w-5 h-5 text-primary" />
             Certifications
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Manage your certifications with optional issuer, credential URL, ID and date.</p>
+          <p className="text-sm text-muted-foreground">Manage your certifications. Place certificate images in <code className="text-xs bg-muted px-1 rounded">/public/certificates/</code> and use path like <code className="text-xs bg-muted px-1 rounded">/certificates/cert-name.jpg</code></p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="cert-title">Title</Label>
               <Input id="cert-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g., AWS Cloud Practitioner" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cert-issuer">Issuer</Label>
-              <Input id="cert-issuer" value={form.issuer ?? ""} onChange={(e) => setForm({ ...form, issuer: e.target.value })} placeholder="e.g., AWS" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="cert-date">Date</Label>
               <Input id="cert-date" value={form.date ?? ""} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="e.g., Jan 2025" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cert-url">Credential URL</Label>
-              <Input id="cert-url" value={form.url ?? ""} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://..." />
-            </div>
-            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="cert-id">Credential ID (optional)</Label>
               <Input id="cert-id" value={form.id ?? ""} onChange={(e) => setForm({ ...form, id: e.target.value })} placeholder="ABC-123-XYZ" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="cert-image">Certificate Image Path</Label>
+              <Input id="cert-image" value={form.imageUrl ?? ""} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="/certificates/my-certificate.jpg" />
+              <p className="text-xs text-muted-foreground">Upload images to /public/certificates/ folder and use path: /certificates/filename.jpg</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -464,19 +461,20 @@ function CertificationsManager() {
           certifications.map((c, i) => (
             <Card key={`${c.title}-${i}`} className="hover:border-primary/30 transition-colors">
               <CardContent className="p-6 flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{c.title}</h3>
-                    {c.issuer && <span className="text-xs px-2 py-0.5 rounded bg-secondary text-secondary-foreground">{c.issuer}</span>}
-                  </div>
-                  <div className="text-sm text-muted-foreground flex flex-wrap gap-3">
-                    {c.date && <span>{c.date}</span>}
-                    {c.id && <span>ID: {c.id}</span>}
-                    {c.url && (
-                      <a href={c.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                        <ExternalLink className="w-3.5 h-3.5" /> View Credential
-                      </a>
-                    )}
+                <div className="flex items-start gap-4 flex-1">
+                  {c.imageUrl && (
+                    <div className="w-24 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      <img src={c.imageUrl} alt={c.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{c.title}</h3>
+                    </div>
+                    <div className="text-sm text-muted-foreground flex flex-wrap gap-3">
+                      {c.date && <span>{c.date}</span>}
+                      {c.id && <span>ID: {c.id}</span>}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2">

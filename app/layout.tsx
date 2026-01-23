@@ -17,12 +17,40 @@ const brotherlandFont = localFont({
   variable: "--font-brotherland",
   display: "swap",
   preload: true,
+  fallback: ["cursive", "system-ui"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
   title: "Aryan Raj | Backend Engineer & System Architect",
   description:
     "Backend Engineer specializing in Java, Spring Boot, and scalable system architecture. Building secure, production-grade systems with modern cloud infrastructure.",
+  keywords: ["Backend Engineer", "Java", "Spring Boot", "System Architecture", "Aryan Raj"],
+  authors: [{ name: "Aryan Raj" }],
+  creator: "Aryan Raj",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    title: "Aryan Raj | Backend Engineer",
+    description: "Backend Engineer specializing in Java, Spring Boot, and scalable system architecture.",
+    siteName: "Aryan Raj Portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aryan Raj | Backend Engineer",
+    description: "Backend Engineer specializing in Java, Spring Boot, and scalable system architecture.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
