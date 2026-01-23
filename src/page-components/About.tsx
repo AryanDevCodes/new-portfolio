@@ -162,7 +162,7 @@ export default function About() {
                     <p className="text-sm font-medium uppercase tracking-widest opacity-70">Experience</p>
                     <div className="flex items-center gap-3">
                       <Briefcase className="w-5 h-5" />
-                      <p className="text-lg font-semibold">{displayExperience.length}+ Years</p>
+                      <p className="text-lg font-semibold">Fresher</p>
                     </div>
                   </div>
                 </div>
@@ -589,6 +589,7 @@ export default function About() {
     </div>
   );
 }
+<<<<<<< HEAD
 
 // Certificates Gallery Component - Professional Coverflow Style
 const CertificatesGallery = memo(function CertificatesGallery({ certificates }: { certificates: any[] }) {
@@ -892,3 +893,5 @@ const CertificatesGallery = memo(function CertificatesGallery({ certificates }: 
   );
 });
 
+=======
+>>>>>>> 189a1e2e875e795030d9f885f65cdaf349d2a9c8
