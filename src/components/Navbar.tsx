@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Download, Home, User, FolderGit2, BookOpen, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useGlobalData } from "@/contexts/GlobalDataContext";
 
 /* ---------------- Types ---------------- */
 type NavLink = {
@@ -33,42 +34,34 @@ const getNavIcon = (path: string) => {
 
 /* ---------------- Component ---------------- */
 export default function Navbar() {
+  const { data: globalData } = useGlobalData();
   const [isOpen, setIsOpen] = useState(false);
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(null);
-  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const pathname = usePathname();
   const brandText = "< Aryan Raj />";
+  const personalInfo = (globalData.personalInfo as PersonalInfo | undefined) ?? null;
+  const navLinksFromData = useMemo(() => {
+    const maybeLinks = (globalData.portfolioData as any)?.navLinks;
+    return Array.isArray(maybeLinks) ? maybeLinks : [];
+  }, [globalData.portfolioData]);
+
+  const fallbackNavLinks: NavLink[] = useMemo(() => ([
+    { path: "/", label: "Home" },
+    { path: "/about", label: "About" },
+    { path: "/projects", label: "Projects" },
+    { path: "/blog", label: "Blog" },
+    { path: "/contact", label: "Contact" },
+  ]), []);
+
+  const navLinks = navLinksFromData.length ? navLinksFromData : fallbackNavLinks;
   const resumeUrl = personalInfo?.resumeUrl || "/resume.pdf";
 
   /* ---------------- Hydration ---------------- */
   useEffect(() => {
     setHydrated(true);
-  }, []);
-
-  /* ---------------- Fetch Data ---------------- */
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [personalRes, dataRes] = await Promise.all([
-          fetch("/api/portfolio/personal-info"),
-          fetch("/api/portfolio/data"),
-        ]);
-
-        if (personalRes.ok) setPersonalInfo(await personalRes.json());
-        if (dataRes.ok) {
-          const data = await dataRes.json();
-          setNavLinks(data.navLinks ?? []);
-        }
-      } catch (err) {
-        console.error("Navbar fetch error:", err);
-      }
-    };
-
-    fetchData();
   }, []);
 
   /* ---------------- Scroll Effect ---------------- */

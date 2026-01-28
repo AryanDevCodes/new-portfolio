@@ -57,7 +57,8 @@ export async function getAdminData(key: DataKey): Promise<unknown> {
 export async function setAdminData(key: DataKey, data: unknown): Promise<void> {
   await initRedis();
   if (!redisClient) {
-    throw new Error('Redis client not available');
+    // Allow write flow to continue in environments without Redis
+    return;
   }
   try {
     const jsonString = JSON.stringify(data);

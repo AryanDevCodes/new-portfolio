@@ -1,12 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { setAdminData } from "@/lib/admin-storage";
 import { personalInfo, education, experience, stats, aboutSections, homeSections, navLinks, footerData, contactPage, projectsPage, ctaSection, siteMetadata } from "@/data/portfolio-data";
 import { skillCategories, certifications } from "@/data/skills";
 import { projects, additionalProjects } from "@/data/projects";
 import { timeline } from "@/data/timeline";
 import type { Skill, Certification, HeroData, SocialLink, Experience, Education } from "@/contexts/AdminContext";
+import { checkAPIRateLimit, logAuditEvent, requireAdminAuth } from "@/lib/admin-middleware";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+  const auth = await requireAdminAuth(req);
+  if (!auth.authorized) {
+    logAuditEvent("seed_attempt", ip, "UNAUTHORIZED");
+    return auth.response;
+  }
+
+  const rateLimit = checkAPIRateLimit(ip);
+  if (!rateLimit.allowed) {
+    logAuditEvent("seed_attempt", ip, "RATE_LIMITED");
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
+
   try {
     // Transform static data to admin format
 
@@ -104,6 +119,7 @@ export async function POST() {
       setAdminData("timeline", timeline),
     ]);
 
+    logAuditEvent("seed_attempt", ip, "SUCCESS");
     return NextResponse.json({
       success: true,
       message: "Successfully seeded all data to Redis",
@@ -124,7 +140,7 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("Seed error:", error);
+    logAuditEvent("seed_attempt", ip, "ERROR");
     return NextResponse.json(
       {
         success: false,

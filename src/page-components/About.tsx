@@ -655,13 +655,13 @@ const CertificatesGallery = memo(function CertificatesGallery({ certificates }: 
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
             >
               <Award className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Professional Credentials</span>
+              <span className="text-sm font-medium"> Credentials </span>
             </motion.div>
             <h2 className="text-4xl md:text-5xl font-bold font-display bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
               Certifications Gallery
             </h2>
             <p className="text-lg opacity-70 max-w-2xl mx-auto">
-              Showcasing my professional achievements and continuous learning journey
+              Showcasing my achievements and continuous learning journey
             </p>
           </motion.div>
 

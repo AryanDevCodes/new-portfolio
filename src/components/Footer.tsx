@@ -4,8 +4,9 @@ import { Github, Linkedin, Mail, Twitter, Terminal, Code2, Heart, Cpu, Sparkles 
 import Link from "next/link";
 import { useAdmin } from "@/contexts/AdminContext";
 import type { SocialLink } from "@/contexts/AdminContext";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useGlobalData } from "@/contexts/GlobalDataContext";
 
 // Types
 interface PersonalInfo {
@@ -29,44 +30,6 @@ interface NavLink {
 }
 
 
-
-// Custom Hook for Footer Data
-const useFooterData = () => {
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({});
-  const [footerData, setFooterData] = useState<FooterData>({});
-  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [personalRes, dataRes] = await Promise.all([
-          fetch("/api/portfolio/personal-info"),
-          fetch("/api/portfolio/data"),
-        ]);
-
-        if (personalRes.ok) {
-          const data = await personalRes.json();
-          setPersonalInfo(data);
-        }
-
-        if (dataRes.ok) {
-          const data = await dataRes.json();
-          setFooterData(data.footerData || {});
-          setNavLinks(Array.isArray(data.navLinks) ? data.navLinks : []);
-        }
-      } catch (error) {
-        console.error("Error fetching footer data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  return { personalInfo, footerData, navLinks, loading };
-};
 
 // Icon Mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -258,8 +221,13 @@ const FooterBottom = ({ footerData }: { footerData: FooterData }) => {
 // Main Footer Component
 export function Footer() {
   const { socialLinks: adminSocial } = useAdmin();
-  const { personalInfo, footerData, navLinks, loading } = useFooterData();
+  const { data: globalData } = useGlobalData();
   const [hydrated, setHydrated] = useState(false);
+
+  const personalInfo = (globalData.personalInfo as PersonalInfo | undefined) ?? {};
+  const portfolioData = (globalData.portfolioData as any) ?? {};
+  const footerData: FooterData = portfolioData.footerData || {};
+  const navLinks: NavLink[] = Array.isArray(portfolioData.navLinks) ? portfolioData.navLinks : [];
 
   useEffect(() => {
     setHydrated(true);

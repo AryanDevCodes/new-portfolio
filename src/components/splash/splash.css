@@ -43,14 +43,23 @@
   margin-left: auto;
   margin-right: 2vw;
   padding: 1.25rem 1.5rem;
-  background: #1e1e2f;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(30,30,60,0.15);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.06);
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 1rem;
   text-align: left;
   overflow-y: auto;
   max-height: 400px;
+  color: #1e293b;
+}
+
+.dark .splash-code-col {
+  background: #1e1e2f;
+  border-color: #2d2d44;
+  box-shadow: 0 8px 32px rgba(30,30,60,0.15);
+  color: #e2e8f0;
 }
 
 /* Illustration */
@@ -79,4 +88,43 @@
 @keyframes splash-hide {
   0% { opacity: 1; transform: scale(1); filter: blur(0); }
   100% { opacity: 0; transform: scale(1.5); filter: blur(20px); }
+}
+
+/* Syntax highlighting - Light mode */
+.syntax-keyword {
+  color: #c7254e;
+  font-weight: 600;
+}
+.syntax-annotation {
+  color: #0e7c7c;
+  font-weight: 500;
+}
+.syntax-type {
+  color: #2563eb;
+  font-weight: 500;
+}
+.syntax-function {
+  color: #0e7c7c;
+}
+
+/* Syntax highlighting - Dark mode */
+.dark .syntax-keyword {
+  color: #ff79c6;
+}
+.dark .syntax-annotation {
+  color: #50fa7b;
+}
+.dark .syntax-type {
+  color: #8be9fd;
+}
+.dark .syntax-function {
+  color: #50fa7b;
+}
+
+/* Base code text color */
+.splash-code-col {
+  color: #1e293b;
+}
+.dark .splash-code-col {
+  color: #e2e8f0;
 }

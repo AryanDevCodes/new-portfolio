@@ -11,5 +11,9 @@ export const dynamic = "force-static";
 export const revalidate = 300;
 
 export default function Home() {
-  return <Index />;
+  return (
+    <div className="pt-8 md:pt-12">
+      <Index />
+    </div>
+  );
 }

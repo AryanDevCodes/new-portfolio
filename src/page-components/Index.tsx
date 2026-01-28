@@ -264,14 +264,14 @@ export default function Index() {
   return (
     <>
       {/* Hero Section */}
-      <section className="min-h-[90vh] flex flex-col justify-center relative overflow-hidden">
+      <section className="min-h-[82vh] flex items-center relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center pt-10">
-            <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
-              <motion.div variants={item} className="space-y-6">
+          <div className="grid lg:grid-cols-[1.4fr_0.6fr] gap-8 xl:gap-16 items-center">
+            <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 max-w-3xl">
+              <motion.div variants={item} className="space-y-5">
                 <TypewriterHeadline />
-                <div className="max-w-xl rounded-2xl dark:border dark:border-border/60 bg-secondary/30 p-6 backdrop-blur mx-auto">
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                <div className="rounded-xl dark:border dark:border-border/50 bg-secondary/30 p-5 backdrop-blur shadow-sm max-w-2xl">
+                  <p className="text-muted-foreground leading-relaxed text-[15px] whitespace-pre-line">
                     {heroData?.bio}
                   </p>
                 </div>
@@ -333,40 +333,41 @@ export default function Index() {
       </section>
 
       {/* Featured Projects */}
-      <section className="py-12 sm:py-16 relative">
+      <section className="py-16 sm:py-20 relative">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display mt-2">Featured builds</h2>
-              <p className="text-muted-foreground max-w-2xl mt-3">
-                Systems where I owned architecture, performance budgets, and developer experience.
+          <div className="mb-10">
+            <div className="max-w-2xl">
+              <p className="text-primary font-medium text-sm mb-2">// Recent Work</p>
+              <h2 className="text-3xl sm:text-4xl font-bold font-display mb-3">Featured Projects</h2>
+              <p className="text-muted-foreground text-base">
+                Key projects showcasing technical skills and problem-solving abilities.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3 self-start md:self-end">
-              <Button variant="outline" asChild className="md:self-end">
+            <div className="flex gap-3 mt-6">
+              <Button asChild size="sm">
                 <Link href="/projects">
-                  Explore projects
+                  View All
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
-              <Button variant="outline" asChild className="md:self-end">
+              <Button variant="outline" size="sm" asChild>
                 <Link href={personalInfo.github || "https://github.com"} target="_blank">
                   <Github className="w-4 h-4 mr-2" />
-                  View all repos
+                  GitHub
                 </Link>
               </Button>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
             {featuredProjects.map((project, i) => (
               <motion.div
                 key={project.slug}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.45 }}
-                className="relative rounded-3xl dark:border dark:border-border/70 bg-card/50 overflow-hidden group dark:hover:border-primary/40 transition-colors"
+                transition={{ delay: i * 0.06, duration: 0.42 }}
+                className="relative rounded-3xl dark:border dark:border-border/70 bg-card/60 overflow-hidden group dark:hover:border-primary/40 shadow-card hover:shadow-card-hover transition-all"
               >
                 <div className="absolute inset-0 bg-primary/4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="p-6 flex flex-col h-full relative z-10 gap-4">
@@ -406,18 +407,16 @@ export default function Index() {
 
       {/* Capabilities */}
       {capabilityColumns.length > 0 && (
-      <section className="py-12 sm:py-16 bg-secondary/8 border-y border-border/60">
+      <section className="py-16 sm:py-20 bg-secondary/8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10">
-            <div>
-              <p className="text-primary font-mono text-sm">// Services</p>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display mt-2">Services & Expertise</h2>
-            </div>
+          <div className="mb-10 max-w-2xl">
+            <p className="text-primary font-medium text-sm mb-2">// What I Do</p>
+            <h2 className="text-3xl sm:text-4xl font-bold font-display">Core Skills</h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
             {capabilityColumns.map((col) => (
-              <div key={col.title} className="p-6 rounded-3xl bg-card/50 border border-border/70 shadow-sm hover:border-border/80 hover:bg-card/60 transition-colors">
+              <div key={col.title} className="p-6 rounded-3xl bg-card/60 border border-border/60 shadow-card hover:shadow-card-hover transition-all">
                 <div className="flex items-center gap-3 mb-4">
                   <col.icon className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-foreground">{col.title}</h3>
@@ -439,26 +438,26 @@ export default function Index() {
 
 
       {/* Final CTA */}
-      <section className="py-12 sm:py-16 relative overflow-hidden">
-        <div className="absolute inset-0 hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] h-[620px] rounded-full bg-gradient-to-r from-primary/8 via-accent/6 to-terminal-purple/8 blur-3xl" />
-        </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <p className="text-primary font-mono text-sm">// Collaborate</p>
-            <h2 className="text-3xl sm:text-4xl font-bold font-display">Let's Work Together</h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button variant="hero" size="lg" className="group shadow-elegant" asChild>
-                <Link href="/contact">
-                  Contact me
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href={`mailto:${personalInfo.email || ""}`}>
-                  <Mail className="w-4 h-4 mr-2" /> Email directly
-                </Link>
-              </Button>
+      <section className="py-16 sm:py-20 relative">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 border border-border/50 p-8 md:p-12">
+            <div className="max-w-2xl space-y-5">
+              <p className="text-primary font-medium text-sm">// Get In Touch</p>
+              <h2 className="text-3xl sm:text-4xl font-bold font-display">Let's Connect</h2>
+              <p className="text-muted-foreground text-base">Open to opportunities, collaborations, and interesting conversations.</p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button asChild className="group">
+                  <Link href="/contact">
+                    Contact Me
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href={`mailto:${personalInfo.email || ""}`}>
+                    <Mail className="w-4 h-4 mr-2" /> Email
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

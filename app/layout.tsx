@@ -71,10 +71,10 @@ export default function RootLayout({
         <Providers>
           <div
             id="root-content"
-            className="min-h-screen flex flex-col bg-blue-200 dark:bg-background"
+            className="min-h-screen flex flex-col bg-background text-foreground"
           >
             <Navbar />
-            <main className="flex-1 pt-16">{children}</main>
+            <main className="flex-1 pt-2 md:pt-4">{children}</main>
             <Footer />
           </div>
         </Providers>
