@@ -55,7 +55,7 @@ export function HeroIllustration() {
         transition={prefersReducedMotion ? undefined : { duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Sun */}
+      {/* Center */}
       <div
         className="absolute z-10"
         style={{
@@ -64,11 +64,11 @@ export function HeroIllustration() {
           transform: 'translate(-50%, -50%)'
         }}
       >
-        {/* Sun glow */}
-        <div className="absolute w-32 h-32 rounded-full bg-gradient-to-r from-yellow-400/40 via-orange-400/30 to-red-400/20 blur-3xl" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }} />
-        {/* Sun core */}
+        {/* Subtle glow */}
+        <div className="absolute w-28 h-28 rounded-full bg-primary/15 blur-3xl" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }} />
+        {/* Core */}
         <motion.div
-          className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500 shadow-2xl flex items-center justify-center"
+          className="relative w-20 h-20 rounded-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 shadow-xl border border-slate-300 flex items-center justify-center"
           animate={prefersReducedMotion ? undefined : {
             scale: [1, 1.05, 1],
             rotate: [0, 360]
@@ -78,8 +78,8 @@ export function HeroIllustration() {
             rotate: { duration: 30, repeat: Infinity, ease: "linear" }
           }}
         >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400/50 to-transparent" />
-          <div className="text-3xl">☀️</div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/70 to-transparent" />
+          <div className="text-2xl text-slate-600">◎</div>
         </motion.div>
       </div>
 
@@ -91,7 +91,7 @@ export function HeroIllustration() {
           style={{
             width: radius * 2,
             height: radius * 2,
-            borderColor: "rgba(255,255,255,0.2)",
+            borderColor: "rgba(100,116,139,0.25)",
             borderStyle: i % 2 === 0 ? "dashed" : "solid",
             borderWidth: "1px",
           }}
@@ -123,7 +123,7 @@ export function HeroIllustration() {
               }}
             >
               {/* Planet glow trail */}
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-full blur-xl opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-400/35 to-slate-500/30 rounded-full blur-xl opacity-60" />
 
               {/* Planet body */}
               <motion.div
@@ -131,15 +131,15 @@ export function HeroIllustration() {
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.15 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/60 to-blue-500/60 rounded-2xl blur-lg group-hover:blur-xl transition-all" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-400/35 to-slate-500/30 rounded-2xl blur-lg group-hover:blur-xl transition-all" />
                 <motion.div
-                  className="relative w-full h-full rounded-2xl bg-white/90 backdrop-blur-xl flex items-center justify-center shadow-2xl border-2 border-white/50 p-2 group-hover:border-cyan-400/60 transition-all"
+                  className="relative w-full h-full rounded-2xl bg-white/95 backdrop-blur-xl flex items-center justify-center shadow-xl border-2 border-slate-200 p-2 group-hover:border-slate-400 transition-all"
                   whileHover={
                     prefersReducedMotion
                       ? undefined
                       : {
-                          borderColor: "rgba(255, 255, 255, 0.8)",
-                          boxShadow: "0 0 30px rgba(255, 255, 255, 0.5)",
+                          borderColor: "rgba(100, 116, 139, 0.6)",
+                          boxShadow: "0 0 18px rgba(100, 116, 139, 0.25)",
                         }
                   }
                 >
@@ -162,7 +162,7 @@ export function HeroIllustration() {
         return (
           <motion.div
             key={`star-${i}`}
-            className="absolute top-1/2 left-1/2 w-1 h-1 bg-white/40 rounded-full"
+            className="absolute top-1/2 left-1/2 w-1 h-1 bg-slate-400/40 rounded-full"
             style={{
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
             }}
@@ -182,10 +182,10 @@ export function HeroIllustration() {
 
       {/* Comet */}
       <motion.div
-        className="absolute w-1 h-1 bg-cyan-400 rounded-full shadow-lg"
+        className="absolute w-1 h-1 bg-slate-500 rounded-full shadow-lg"
         style={{
           boxShadow:
-            "0 0 10px rgba(34, 211, 238, 0.8), 0 0 20px rgba(34, 211, 238, 0.4)",
+            "0 0 8px rgba(100, 116, 139, 0.6), 0 0 16px rgba(100, 116, 139, 0.3)",
         }}
         animate={
           prefersReducedMotion

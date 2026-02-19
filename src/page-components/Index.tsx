@@ -17,8 +17,6 @@ import {
   Linkedin,
   Mail,
   Twitter,
-  Download,
-  Sparkles,
   ShieldCheck,
   Cpu,
   Server,
@@ -28,7 +26,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroIllustration } from "@/components/HeroIllustration";
-import { memo, useEffect, useMemo, useState, useCallback } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { fetchCache } from "@/lib/fetchCache";
 import { useAdmin } from "@/contexts/AdminContext";
 
@@ -36,16 +34,16 @@ const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.12, delayChildren: 0.08 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.08 },
   },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, y: 12 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55 },
+    transition: { duration: 0.42, ease: "easeOut" as const },
   },
 };
 
@@ -72,11 +70,6 @@ interface Project {
   live?: string;
   featured?: boolean;
   roles?: Array<{ role: string }>;
-}
-
-interface SkillCategory {
-  category: string;
-  items: string[];
 }
 
 const MemoHeroIllustration = memo(HeroIllustration);
@@ -149,13 +142,9 @@ const TypewriterHeadline = memo(function TypewriterHeadline() {
     return () => clearTimeout(timeout);
   }, [typewriterIndex, phraseIndex, hydrated, isDeleting]);
 
-  // Define a set of color classes or inline styles to cycle through
+  // Keep headline styling classic and consistent
   const colorClasses = [
-    "bg-gradient-to-r from-primary via-primary to-accent", // original
-    "bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400",
-    "bg-gradient-to-r from-green-400 via-blue-500 to-purple-500",
-    "bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500",
-    "bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500",
+    "text-primary",
   ];
   const colorIndex = phraseIndex % colorClasses.length;
   const currentColorClass = colorClasses[colorIndex];
@@ -165,13 +154,12 @@ const TypewriterHeadline = memo(function TypewriterHeadline() {
       <span className="text-foreground">{typewriterPrefix}</span>
       <span className="relative inline-block">
         <span
-          className={`relative z-10 ${currentColorClass} bg-clip-text text-transparent text-lg sm:text-xl md:text-2xl`}
+          className={`relative z-10 ${currentColorClass} text-lg sm:text-xl md:text-2xl`}
         >
           {displayedTypewriter}
         </span>
         <span
-          className={`inline-block w-[3px] h-[0.85em] ${currentColorClass} bg-clip-text text-transparent ml-1.5 animate-pulse rounded-full`}
-          style={{ background: "inherit" }}
+          className="inline-block w-[2px] h-[0.85em] bg-primary ml-1.5 animate-pulse rounded-full"
         />
       </span>
     </h1>
@@ -179,13 +167,12 @@ const TypewriterHeadline = memo(function TypewriterHeadline() {
 });
 
 export default function Index() {
-  const { heroData, skills: adminSkills, socialLinks: adminSocial } = useAdmin();
+  const { heroData, socialLinks: adminSocial } = useAdmin();
   
   const [hydrated, setHydrated] = useState(false);
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({});
   const [homeSections, setHomeSections] = useState<HomeSections>({});
   const [projects, setProjects] = useState<Project[]>([]);
-  const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
 
   useEffect(() => {
     // Wait for global data to be ready from splash screen
@@ -193,7 +180,6 @@ export default function Index() {
       // Load from cache immediately
       const cp = fetchCache.get<any>("/api/portfolio/personal-info");
       const cproj = fetchCache.get<{ projects: any[] }>("/api/portfolio/projects");
-      const cskills = fetchCache.get<any[]>("/api/portfolio/skills");
       const cdata = fetchCache.get<any>("/api/portfolio/data");
       
       if (cp) {
@@ -202,9 +188,6 @@ export default function Index() {
       if (cproj) {
         const projectsArray = cproj.projects || [];
         setProjects(projectsArray);
-      }
-      if (cskills) {
-        setSkillCategories(cskills);
       }
       if (cdata) {
         setHomeSections(cdata.homeSections || {});
@@ -264,14 +247,14 @@ export default function Index() {
   return (
     <>
       {/* Hero Section */}
-      <section className="min-h-[82vh] flex items-center relative overflow-hidden">
+      <section className="min-h-[82vh] flex items-center relative py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-[1.4fr_0.6fr] gap-8 xl:gap-16 items-center">
             <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 max-w-3xl">
               <motion.div variants={item} className="space-y-5">
                 <TypewriterHeadline />
-                <div className="rounded-xl dark:border dark:border-border/50 bg-secondary/30 p-5 backdrop-blur shadow-sm max-w-2xl">
-                  <p className="text-muted-foreground leading-relaxed text-[15px] whitespace-pre-line">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm max-w-2xl">
+                  <p className="text-muted-foreground leading-relaxed text-[15px] whitespace-pre-line max-w-[68ch]">
                     {heroData?.bio}
                   </p>
                 </div>
@@ -313,9 +296,9 @@ export default function Index() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.label}
-                        whileHover={{ scale: 1.08, y: -3 }}
+                        whileHover={{ y: -1 }}
                         whileTap={{ scale: 0.95 }}
-                        className="h-11 w-11 rounded-xl dark:border dark:border-border/60 bg-secondary/40 flex items-center justify-center text-muted-foreground hover:text-primary dark:hover:border-primary/50 transition"
+                        className="h-11 w-11 rounded-md border border-border bg-secondary/70 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 transition"
                       >
                         <Icon className="w-4 h-4" />
                       </motion.a>
@@ -333,14 +316,14 @@ export default function Index() {
       </section>
 
       {/* Featured Projects */}
-      <section className="py-16 sm:py-20 relative">
+      <section className="py-16 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
             <div className="max-w-2xl">
-              <p className="text-primary font-medium text-sm mb-2">// Recent Work</p>
+              <p className="text-primary font-medium text-xs uppercase tracking-widest mb-2">Fresh Builds</p>
               <h2 className="text-3xl sm:text-4xl font-bold font-display mb-3">Featured Projects</h2>
               <p className="text-muted-foreground text-base">
-                Key projects showcasing technical skills and problem-solving abilities.
+                A curated set of things I recently crafted and shipped.
               </p>
             </div>
             <div className="flex gap-3 mt-6">
@@ -363,13 +346,13 @@ export default function Index() {
             {featuredProjects.map((project, i) => (
               <motion.div
                 key={project.slug}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.06, duration: 0.42 }}
-                className="relative rounded-3xl dark:border dark:border-border/70 bg-card/60 overflow-hidden group dark:hover:border-primary/40 shadow-card hover:shadow-card-hover transition-all"
+                transition={{ delay: i * 0.05, duration: 0.35, ease: "easeOut" }}
+                whileHover={{ y: -3 }}
+                className="relative rounded-md border border-border bg-card overflow-hidden group hover:border-primary/30 shadow-sm hover:shadow-md transition-all"
               >
-                <div className="absolute inset-0 bg-primary/4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="p-6 flex flex-col h-full relative z-10 gap-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -377,12 +360,12 @@ export default function Index() {
                     </div>
                     <div className="flex items-center gap-2">
                       {project.github && (
-                        <Link href={project.github} target="_blank" className="w-9 h-9 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/70 dark:border dark:border-border/60 transition-colors">
+                        <Link href={project.github} target="_blank" className="w-9 h-9 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
                           <Github className="w-4 h-4" />
                         </Link>
                       )}
                       {project.live && (
-                        <Link href={project.live} target="_blank" className="w-9 h-9 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/70 dark:border dark:border-border/60 transition-colors">
+                        <Link href={project.live} target="_blank" className="w-9 h-9 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
                           <ExternalLink className="w-4 h-4" />
                         </Link>
                       )}
@@ -407,16 +390,16 @@ export default function Index() {
 
       {/* Capabilities */}
       {capabilityColumns.length > 0 && (
-      <section className="py-16 sm:py-20 bg-secondary/8">
+      <section className="py-16 sm:py-20 bg-secondary/30 border-y border-border/60">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10 max-w-2xl">
-            <p className="text-primary font-medium text-sm mb-2">// What I Do</p>
+              <p className="text-primary font-medium text-xs uppercase tracking-widest mb-2">How I Build</p>
             <h2 className="text-3xl sm:text-4xl font-bold font-display">Core Skills</h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
             {capabilityColumns.map((col) => (
-              <div key={col.title} className="p-6 rounded-3xl bg-card/60 border border-border/60 shadow-card hover:shadow-card-hover transition-all">
+              <div key={col.title} className="p-6 rounded-md bg-card border border-border shadow-sm hover:shadow-md transition-all">
                 <div className="flex items-center gap-3 mb-4">
                   <col.icon className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-foreground">{col.title}</h3>
@@ -438,18 +421,18 @@ export default function Index() {
 
 
       {/* Final CTA */}
-      <section className="py-16 sm:py-20 relative">
+      <section className="py-16 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 border border-border/50 p-8 md:p-12">
+          <div className="rounded-md bg-card border border-border p-8 md:p-12 shadow-sm">
             <div className="max-w-2xl space-y-5">
-              <p className="text-primary font-medium text-sm">// Get In Touch</p>
-              <h2 className="text-3xl sm:text-4xl font-bold font-display">Let's Connect</h2>
-              <p className="text-muted-foreground text-base">Open to opportunities, collaborations, and interesting conversations.</p>
+              <p className="text-primary font-medium text-xs uppercase tracking-widest">Say Hello</p>
+              <h2 className="text-3xl sm:text-4xl font-bold font-display">Let’s Connect</h2>
+              <p className="text-muted-foreground text-base">Always happy to talk about ideas, products, and new opportunities.</p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button asChild className="group">
                   <Link href="/contact">
                     Contact Me
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>

@@ -51,18 +51,18 @@ const containerVariants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.08,
+      delayChildren: 0.08,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 10 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5 },
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
@@ -74,19 +74,13 @@ const BrandSection = ({ personalInfo }: { personalInfo: PersonalInfo }) => {
     <div className="space-y-2">
       <Link href="/" className="inline-flex items-center gap-2 group">
         <div className="relative">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 via-primary/10 to-accent/15 flex items-center justify-center group-hover:scale-105 transition-all duration-300 shadow-lg shadow-primary/10">
+          <div className="w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center transition-colors duration-200 group-hover:bg-secondary/80">
             <Terminal className="w-4 h-4 text-primary" />
           </div>
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-accent/30 rounded-lg blur-xl opacity-0 group-hover:opacity-70 transition-opacity duration-500 -z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="font-mono font-bold text-lg tracking-tight">
-            {firstName}
-            <span className="text-primary animate-pulse">_</span>
-          </span>
-          <span className="text-xs text-muted-foreground font-mono">
-            &gt; backend_engineer
-          </span>
+          <span className="font-semibold text-lg tracking-tight text-foreground">{firstName}</span>
+          <span className="text-xs text-muted-foreground">Building modern backend experiences</span>
         </div>
       </Link>
     </div>
@@ -109,8 +103,8 @@ const QuickLinksSection = ({ navLinks }: { navLinks: NavLink[] }) => {
 
   return (
     <div className="space-y-2">
-      <h4 className="font-mono font-semibold text-xs text-primary/80 uppercase tracking-wider">
-        // Navigation
+      <h4 className="font-semibold text-xs text-foreground uppercase tracking-wide">
+        Navigation
       </h4>
       <nav className="grid grid-cols-2 gap-1">
         {displayLinks.map((link, index) => (
@@ -123,7 +117,7 @@ const QuickLinksSection = ({ navLinks }: { navLinks: NavLink[] }) => {
           >
             <Link
               href={link.path}
-              className="group flex items-center gap-1.5 p-1.5 rounded-md hover:bg-secondary/50 transition-all duration-300 hover:shadow-sm hover:shadow-primary/5"
+              className="group flex items-center gap-1.5 p-1.5 rounded-md hover:bg-secondary transition-colors duration-200"
             >
               <div className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary group-hover:scale-125 transition-transform" />
               <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
@@ -142,8 +136,8 @@ const ConnectSection = ({ socialLinks }: { socialLinks: SocialLink[] }) => {
 
   return (
     <div className="space-y-2">
-      <h4 className="font-mono font-semibold text-xs text-primary/80 uppercase tracking-wider">
-        // Connect
+      <h4 className="font-semibold text-xs text-foreground uppercase tracking-wide">
+        Connect
       </h4>
       <div className="flex flex-wrap gap-1.5">
         {socialLinks.map((social, index) => {
@@ -158,12 +152,12 @@ const ConnectSection = ({ socialLinks }: { socialLinks: SocialLink[] }) => {
               initial="hidden"
               animate="show"
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -1, scale: 1.05 }}
+              whileHover={{ y: -1, scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               className="relative group"
               aria-label={social.label}
             >
-              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-secondary/80 to-secondary/40 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-all duration-300 shadow-sm shadow-secondary/20 group-hover:shadow-primary/20">
+              <div className="w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-all duration-200">
                 <Icon className="w-3.5 h-3.5" />
               </div>
             </motion.a>
@@ -196,17 +190,17 @@ const FooterBottom = ({ footerData }: { footerData: FooterData }) => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="mt-6 pt-4 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-2">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-mono">
+        <span>
           © {currentYear} {footerData.copyright || "All rights reserved."}
         </span>
-        <Heart className="w-2.5 h-2.5 text-red-500 animate-pulse" />
+        <Heart className="w-2.5 h-2.5 text-red-500" />
       </div>
       
       <div className="flex items-center gap-2">
         {footerData.builtWith ? (
-          <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Cpu className="w-3 h-3" />
             {footerData.builtWith}
           </span>
@@ -253,13 +247,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-border bg-gradient-to-b from-card/70 via-card/50 to-card/30 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-2xl" />
-      </div>
+    <footer className="border-t border-border bg-card relative overflow-hidden">
 
       <motion.div
         variants={containerVariants}
@@ -277,9 +265,9 @@ export function Footer() {
               </p>
             )}
             <div className="flex items-center gap-1">
-              <div className="h-0.5 w-6 bg-gradient-to-r from-primary to-accent rounded-full" />
-              <div className="h-0.5 w-3 bg-gradient-to-r from-accent to-primary/50 rounded-full" />
-              <div className="h-0.5 w-1.5 bg-gradient-to-r from-primary/50 to-accent/30 rounded-full" />
+              <div className="h-0.5 w-6 bg-primary rounded-full" />
+              <div className="h-0.5 w-3 bg-primary/60 rounded-full" />
+              <div className="h-0.5 w-1.5 bg-primary/40 rounded-full" />
             </div>
           </motion.div>
 
@@ -295,8 +283,8 @@ export function Footer() {
             {/* Contact Info */}
             {personalInfo.email && (
               <div className="mt-4 space-y-1">
-                <h4 className="font-mono font-semibold text-xs text-primary/80 uppercase tracking-wider">
-                  // Get in touch
+                <h4 className="font-semibold text-xs text-foreground uppercase tracking-wide">
+                  Get in touch
                 </h4>
                 <a
                   href={`mailto:${personalInfo.email}`}
@@ -312,13 +300,10 @@ export function Footer() {
           </motion.div>
         </div>
 
-        
-
-        {/* Decorative Elements */}
-        <div className="absolute bottom-4 right-4 flex items-center gap-2 text-xs text-muted-foreground/30">
-          <div className="w-1 h-1 rounded-full bg-primary/20" />
-          <span className="font-mono">{personalInfo.location || "Remote"}</span>
-        </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border/60 pt-4">
+                  <div className="text-xs text-muted-foreground">{personalInfo.location || "Remote"}</div>
+                  <FooterBottom footerData={footerData} />
+                </div>
       </motion.div>
     </footer>
   );

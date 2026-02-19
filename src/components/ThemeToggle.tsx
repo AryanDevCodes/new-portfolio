@@ -10,10 +10,10 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden rounded-md"
     >
       <motion.div
         initial={false}

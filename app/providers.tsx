@@ -14,7 +14,7 @@ export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="portfolio-theme" attribute="class">
+    <ThemeProvider defaultTheme="light" storageKey="portfolio-theme" attribute="class">
       <ChakraProvider value={defaultSystem}>
         <QueryClientProvider client={queryClient}>
           <AdminProvider>

@@ -41,7 +41,7 @@ export default function Navbar() {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const pathname = usePathname();
-  const brandText = "< Aryan Raj />";
+  const brandText = "Aryan Raj";
   const personalInfo = (globalData.personalInfo as PersonalInfo | undefined) ?? null;
   const navLinksFromData = useMemo(() => {
     const maybeLinks = (globalData.portfolioData as any)?.navLinks;
@@ -89,13 +89,13 @@ export default function Navbar() {
 
   return (
     <motion.header
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/70 dark:bg-black/40 backdrop-blur-xl border-b border-border/50 shadow-sm"
-          : "bg-transparent"
+          ? "bg-background/95 backdrop-blur border-b border-border shadow-sm"
+          : "bg-background/80"
       }`}
     >
       <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -104,22 +104,14 @@ export default function Navbar() {
           {/* ---------------- LOGO ---------------- */}
           <Link href="/" className="group">
             <motion.span
-              whileHover={{
-                scale: 1.05,
-                textShadow: "0 0 18px rgba(99,102,241,0.6)",
-              }}
-              className="signature-font block select-none"
+              whileHover={{ y: -1 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="signature-font block select-none text-3xl sm:text-4xl text-foreground"
               style={{
-                fontSize: "2.4rem",
-                fontWeight: 2400,
-                letterSpacing: "-0.04em",
                 lineHeight: 1,
-                WebkitTextStroke: "1.2px transparent",
               }}
             >
-              <span className="text-neutral-900 dark:text-neutral-100 drop-shadow-sm">
-                {brandText}
-              </span>
+              {brandText}
             </motion.span>
           </Link>
 
@@ -132,16 +124,19 @@ export default function Navbar() {
               const isHovered = hoveredPath === link.path;
 
               return (
-                <div
+                <motion.div
                   key={link.path}
                   className="relative"
+                  initial={false}
+                  whileHover={{ y: -1 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   onMouseEnter={() => setHoveredPath(link.path)}
                   onMouseLeave={() => setHoveredPath(null)}
                 >
                   <Link
                     href={link.path}
                     aria-current={isActive ? "page" : undefined}
-                    className={`px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 ${
+                    className={`px-4 py-2 text-xs sm:text-sm uppercase tracking-wide font-medium transition-colors flex items-center gap-2 ${
                       isActive
                         ? "text-primary"
                         : "text-muted-foreground hover:text-foreground"
@@ -155,10 +150,10 @@ export default function Navbar() {
                     className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-primary via-primary to-accent"
                     initial={false}
                     animate={{ scaleX: isActive || isHovered ? 1 : 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                     style={{ originX: 0 }}
                   />
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -193,26 +188,26 @@ export default function Navbar() {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
+              initial={{ height: 0, opacity: 0, y: -4 }}
+              animate={{ height: "auto", opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="md:hidden border-t border-border/50 overflow-hidden"
             >
-              <div className="py-4 space-y-2 backdrop-blur-md">
+              <div className="py-4 space-y-2 bg-background">
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.path}
-                    initial={{ x: -20, opacity: 0 }}
+                    initial={{ x: -8, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: i * 0.03, duration: 0.18, ease: "easeOut" }}
                   >
                     <Link
                       href={link.path}
-                      className={`block px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-3 ${
+                      className={`block px-4 py-3 rounded-md text-sm font-medium tracking-wide flex items-center gap-3 transition-all duration-200 ${
                         pathname === link.path
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "bg-secondary text-primary border border-border"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                       }`}
                     >
                       {getNavIcon(link.path)}
